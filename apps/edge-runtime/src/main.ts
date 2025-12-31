@@ -16,6 +16,7 @@ import { VisionCapture } from "./vision/capture.js";
 import { SimpleActivityDetector } from "./vision/detectors/simpleActivity.js";
 import { HailoStubDetector } from "./vision/detectors/hailoStub.js";
 import { AppRuntime } from "./runtime/appRuntime.js";
+import { startWhisplayPtt } from "./runtime/whisplayPtt.js";
 import { createServer } from "./api/server.js";
 
 function setupKeyboard(bus: EventBus, logger: ReturnType<typeof createLogger>) {
@@ -90,6 +91,17 @@ const server = createServer(config, runtime, bus);
 try {
   await server.listen({ host: config.api.host, port: config.api.port });
   logger.info(`API listening on http://${config.api.host}:${config.api.port}`);
+
+  let stopWhisplay: (() => void) | undefined;
+  if (config.runtime.pushToTalkMode === "whisplay") {
+    stopWhisplay = await startWhisplayPtt(bus, config, logger);
+  }
+  if (stopWhisplay) {
+    const shutdown = () => stopWhisplay?.();
+    process.on("SIGINT", shutdown);
+    process.on("SIGTERM", shutdown);
+    process.on("exit", shutdown);
+  }
 } catch (err) {
   logger.error({ err }, "Failed to start API server");
   process.exit(1);

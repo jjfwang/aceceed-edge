@@ -14,6 +14,18 @@
 - List devices: `arecord -l` and `aplay -l`.
 - Update `configs/*.yaml` `audio.input.device` and `audio.output.device`.
 
+## Whisplay HAT (WM8960)
+- Install the Whisplay driver: `bash scripts/install_whisplay.sh` (reboot required).
+- After reboot, `aplay -l` should show `wm8960soundcard`; `default` is remapped to it.
+- Set `audio.input.device` and `audio.output.device` to `default` or `hw:wm8960soundcard`.
+- Mic/speaker quick test: `arecord -D default -d 5 /tmp/test.wav && aplay -D default /tmp/test.wav`.
+
+## Whisplay Button PTT
+- Set `runtime.pushToTalkMode` to `whisplay` in `configs/*.yaml`.
+- Optional: `runtime.whisplay.mode` (`hold` or `toggle`) and `runtime.whisplay.buttonPin` (BOARD numbering).
+- The runtime listens directly to GPIO (via `onoff`) when started.
+- On Raspberry Pi OS, you may need to run the runtime as root or grant GPIO access for the service user.
+
 ## Performance Tips
 - Use a heatsink/fan on Pi 5.
 - Prefer a lightweight GGUF model for llama.cpp.

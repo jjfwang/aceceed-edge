@@ -67,11 +67,16 @@ export interface AudioConfig {
 }
 
 export interface RuntimeConfig {
-  pushToTalkMode: "keyboard" | "api";
+  pushToTalkMode: "keyboard" | "api" | "whisplay";
   cameraIndicator: boolean;
   micIndicator: boolean;
   agents?: {
     enabled: string[];
+  };
+  whisplay?: {
+    buttonPin?: number;
+    bounceMs?: number;
+    mode?: "hold" | "toggle";
   };
 }
 

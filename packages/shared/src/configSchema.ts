@@ -58,12 +58,19 @@ export const configSchema = z.object({
     })
   }),
   runtime: z.object({
-    pushToTalkMode: z.enum(["keyboard", "api"]),
+    pushToTalkMode: z.enum(["keyboard", "api", "whisplay"]),
     cameraIndicator: z.boolean(),
     micIndicator: z.boolean(),
     agents: z
       .object({
         enabled: z.array(z.string())
+      })
+      .optional(),
+    whisplay: z
+      .object({
+        buttonPin: z.number().int().positive().optional(),
+        bounceMs: z.number().int().positive().optional(),
+        mode: z.enum(["hold", "toggle"]).optional()
       })
       .optional()
   }),
