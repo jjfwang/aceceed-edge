@@ -50,7 +50,12 @@ echo "Installing Piper (TTS)..."
 if [ ! -d /opt/piper ]; then
   sudo git clone https://github.com/rhasspy/piper /opt/piper
 fi
-sudo make -C /opt/piper
-sudo ln -sf /opt/piper/piper /usr/bin/piper
+sudo cmake -S /opt/piper -B /opt/piper/build -DCMAKE_BUILD_TYPE=Release
+sudo cmake --build /opt/piper/build --config Release --target piper
+PIPER_BIN="/opt/piper/build/piper"
+if [ ! -x "${PIPER_BIN}" ] && [ -x "/opt/piper/piper" ]; then
+  PIPER_BIN="/opt/piper/piper"
+fi
+sudo ln -sf "${PIPER_BIN}" /usr/bin/piper
 
 echo "System dependencies installed. Use scripts/setup_models.sh to download models."
