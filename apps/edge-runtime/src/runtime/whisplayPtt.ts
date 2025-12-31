@@ -63,11 +63,11 @@ function canUseGpiomon(): boolean {
 }
 
 function parseEdge(line: string): "rising" | "falling" | null {
-  const upper = line.toUpperCase();
-  if (upper.includes("RISING")) {
+  const trimmed = line.trim().toLowerCase();
+  if (trimmed === "rising" || trimmed.includes("rising")) {
     return "rising";
   }
-  if (upper.includes("FALLING")) {
+  if (trimmed === "falling" || trimmed.includes("falling")) {
     return "falling";
   }
   return null;
@@ -85,7 +85,17 @@ function startWhisplayPttWithGpiomon(
     return null;
   }
 
-  const args = ["--rising-edge", "--falling-edge", "--num-events=0", "gpiochip0", String(bcmPin)];
+  const args = [
+    "-c",
+    "gpiochip0",
+    "-e",
+    "both",
+    "-F",
+    "%E",
+    "-p",
+    `${bounceMs}ms`,
+    String(bcmPin)
+  ];
   const child = spawn("gpiomon", args, { stdio: ["ignore", "pipe", "pipe"] });
 
   let pressed = false;

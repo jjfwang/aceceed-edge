@@ -96,12 +96,30 @@ try {
   if (config.runtime.pushToTalkMode === "whisplay") {
     stopWhisplay = await startWhisplayPtt(bus, config, logger);
   }
-  if (stopWhisplay) {
-    const shutdown = () => stopWhisplay?.();
-    process.on("SIGINT", shutdown);
-    process.on("SIGTERM", shutdown);
-    process.on("exit", shutdown);
-  }
+
+  let shuttingDown = false;
+  const shutdown = async (signal: string) => {
+    if (shuttingDown) {
+      return;
+    }
+    shuttingDown = true;
+    logger.info({ signal }, "Shutting down");
+    try {
+      stopWhisplay?.();
+      await server.close();
+    } catch (err) {
+      logger.error({ err }, "Shutdown failed");
+    } finally {
+      process.exit(0);
+    }
+  };
+
+  process.on("SIGINT", () => {
+    void shutdown("SIGINT");
+  });
+  process.on("SIGTERM", () => {
+    void shutdown("SIGTERM");
+  });
 } catch (err) {
   logger.error({ err }, "Failed to start API server");
   process.exit(1);
