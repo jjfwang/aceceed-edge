@@ -23,7 +23,7 @@
 ## Whisplay Button PTT
 - Set `runtime.pushToTalkMode` to `whisplay` in `configs/*.yaml`.
 - Optional: `runtime.whisplay.mode` (`hold` or `toggle`) and `runtime.whisplay.buttonPin` (BOARD numbering).
-- The runtime listens directly to GPIO (via `onoff`) when started.
+- The runtime listens directly to GPIO (via `gpiomon` if available, otherwise `onoff`).
 - On Raspberry Pi OS, you may need to run the runtime as root or grant GPIO access for the service user.
 
 ## Performance Tips
