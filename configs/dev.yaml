@@ -53,12 +53,16 @@ audio:
     aplayPath: "aplay"
 
 runtime:
-  pushToTalkMode: "keyboard"
+  pushToTalkMode: "whisplay"
   cameraIndicator: true
   micIndicator: true
   agents:
     enabled:
       - "tutor"
+  whisplay:
+    mode: "hold"
+    buttonPin: 11
+    bounceMs: 50
 
 api:
   host: "127.0.0.1"
