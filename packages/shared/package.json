@@ -12,7 +12,7 @@
     }
   },
   "scripts": {
-    "build": "tsup src/index.ts --dts --format esm",
+    "build": "tsup src/index.ts --dts --format esm --tsconfig tsconfig.build.json",
     "lint": "eslint .",
     "test": "vitest run",
     "format": "prettier . --check"
@@ -21,6 +21,7 @@
     "zod": "^3.23.8"
   },
   "devDependencies": {
+    "@types/node": "^20.14.10",
     "tsup": "^8.3.5",
     "typescript": "^5.5.4",
     "vitest": "^2.1.0"
