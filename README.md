@@ -2,15 +2,32 @@
 
 Offline-first "desk tutor" stack for Raspberry Pi 5 (8GB). Camera + audio, local STT/TTS/LLM with optional cloud LLM via API key. Designed for education, privacy, and easy extension.
 
-## Quick Start (Pi)
-1. Install system deps:
-   - `bash scripts/install_system_deps.sh`
-2. Download models:
-   - `bash scripts/setup_models.sh`
-3. Install JS deps:
-   - `pnpm install`
-4. Run dev:
-   - `pnpm -C apps/edge-runtime dev`
+## Quick Start
+1) Install system dependencies (audio, camera, build tools):
+   ```bash
+   bash scripts/install_system_deps.sh
+   ```
+2) Download models (Whisper, Piper, LLaMA):
+   ```bash
+   bash scripts/setup_models.sh
+   ```
+3) Install JS dependencies (workspace):
+   ```bash
+   pnpm install
+   ```
+4) Run the runtime in development mode (keyboard PTT):
+   ```bash
+   pnpm -C apps/edge-runtime dev
+   ```
+5) Build + run in production mode (API PTT):
+   ```bash
+   pnpm -C apps/edge-runtime build
+   pnpm -C apps/edge-runtime start
+   ```
+6) (Optional) Run tests with coverage thresholds (80%):
+   ```bash
+   pnpm -C apps/edge-runtime test -- --coverage
+   ```
 
 ## Key Endpoints
 - `POST /v1/ptt/start` + `POST /v1/ptt/stop`

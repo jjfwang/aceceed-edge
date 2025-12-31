@@ -1,3 +1,5 @@
+import type { DetectorRunResult } from "@aceceed/shared";
+
 export type EventSource = "api" | "keyboard" | "system";
 
 export type AppEvent =
@@ -6,5 +8,5 @@ export type AppEvent =
   | { type: "ptt:transcript"; text: string }
   | { type: "agent:response"; text: string }
   | { type: "tts:spoken"; text: string }
-  | { type: "camera:capture"; source: EventSource }
+  | { type: "camera:capture"; source: EventSource; detectors: DetectorRunResult[] }
   | { type: "error"; message: string };

@@ -1,5 +1,5 @@
 import type { Logger } from "pino";
-import type { AppConfig, DetectorResult, PttResult } from "@aceceed/shared";
+import type { AppConfig, DetectorResult, DetectorRunResult, PttResult } from "@aceceed/shared";
 import type { AudioInput } from "../audio/input.js";
 import type { AudioOutput } from "../audio/output.js";
 import type { SttProvider } from "../audio/stt/base.js";
@@ -7,6 +7,7 @@ import type { TtsProvider } from "../audio/tts/base.js";
 import type { VisionCapture } from "../vision/capture.js";
 import type { VisionDetector } from "../vision/detectors/base.js";
 import type { EventBus } from "./eventBus.js";
+import type { EventSource } from "./state.js";
 import type { AgentRegistry } from "../agents/registry.js";
 import { SafetyAgent } from "../agents/safetyAgent.js";
 import { safeUnlink } from "../common/utils.js";
@@ -33,19 +34,30 @@ export class AppRuntime {
   start(): void {
     this.bus.subscribe((event) => {
       if (event.type === "ptt:start") {
-        void this.handlePttStart(event.source);
+        if (event.source !== "api") {
+          void this.handlePttStart(event.source).catch((err) => {
+            this.logger.error({ err }, "PTT flow failed");
+          });
+        }
       }
 
       if (event.type === "ptt:stop") {
-        this.handlePttStop();
+        if (event.source !== "api") {
+          this.handlePttStop();
+        }
       }
     });
   }
 
-  async handlePttStart(source: string): Promise<PttResult | null> {
+  isPttActive(): boolean {
+    return this.activePtt;
+  }
+
+  async handlePttStart(source: EventSource): Promise<PttResult | null> {
     if (this.activePtt) {
-      this.logger.warn("PTT already active");
-      return null;
+      const err = new Error("PTT already active");
+      this.logger.warn(err.message);
+      throw err;
     }
 
     this.activePtt = true;
@@ -106,7 +118,7 @@ export class AppRuntime {
     } catch (err) {
       this.logger.error({ err }, "PTT flow failed");
       this.bus.publish({ type: "error", message: (err as Error).message });
-      return null;
+      throw err;
     } finally {
       this.activePtt = false;
       this.pttAbort = undefined;
@@ -120,18 +132,27 @@ export class AppRuntime {
     }
   }
 
-  async captureWithDetectors(): Promise<{ capture: Buffer; detectors: DetectorResult }>{
+  async captureWithDetectors(
+    source: EventSource = "system"
+  ): Promise<{ capture: Buffer; detectors: DetectorRunResult[] }> {
     if (this.config.runtime.cameraIndicator) {
       this.logger.info("Camera active");
     }
 
     const capture = await this.vision.captureStill();
-    let result: DetectorResult = { paperPresent: false, motionScore: 0 };
+    const results: DetectorRunResult[] = [];
 
-    if (this.detectors.length > 0) {
-      result = await this.detectors[0].detect(capture.image);
+    for (const detector of this.detectors) {
+      const result: DetectorResult = await detector.detect(capture.image);
+      results.push({ id: detector.id, ...result });
     }
 
-    return { capture: capture.image, detectors: result };
+    this.bus.publish({
+      type: "camera:capture",
+      source,
+      detectors: results
+    });
+
+    return { capture: capture.image, detectors: results };
   }
 }

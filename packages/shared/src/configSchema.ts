@@ -13,7 +13,10 @@ export const configSchema = z.object({
       provider: z.enum(["openai"]),
       apiKeyEnv: z.string().min(1),
       model: z.string().min(1),
-      baseUrl: z.string().url().optional()
+      baseUrl: z.string().url().optional(),
+      temperature: z.number().min(0).max(1).optional(),
+      maxTokens: z.number().int().positive().optional(),
+      requestTimeoutMs: z.number().int().positive().optional()
     })
   }),
   stt: z.object({
