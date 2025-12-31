@@ -12,10 +12,16 @@ LLAMA_URL="${LLAMA_URL:-https://huggingface.co/TheBloke/TinyLlama-1.1B-Chat-v1.0
 download() {
   local url="$1"
   local dest="$2"
+  local dest_dir
+  dest_dir="$(dirname "$dest")"
+  local use_sudo=""
+  if [[ ! -w "$dest_dir" ]]; then
+    use_sudo="sudo"
+  fi
   if command -v curl >/dev/null 2>&1; then
-    curl -L --fail -o "$dest" "$url"
+    $use_sudo curl -L --fail -o "$dest" "$url"
   elif command -v wget >/dev/null 2>&1; then
-    wget -O "$dest" "$url"
+    $use_sudo wget -O "$dest" "$url"
   else
     echo "Error: need curl or wget to download models." >&2
     exit 1
