@@ -1,27 +1,50 @@
 import type { FastifyInstance } from "fastify";
 import type { AppRuntime } from "../runtime/appRuntime.js";
 import type { EventBus } from "../runtime/eventBus.js";
-import { cameraResponseSchema, pttResponseSchema } from "./schemas.js";
+import {
+  cameraResponseSchema,
+  errorResponseSchema,
+  pttStartResponseSchema,
+  pttStopResponseSchema
+} from "./schemas.js";
 
 export function registerRoutes(server: FastifyInstance, runtime: AppRuntime, bus: EventBus) {
   server.post(
     "/v1/ptt/start",
     {
-      schema: { response: { 200: pttResponseSchema } }
+      schema: { response: { 200: pttStartResponseSchema, 409: errorResponseSchema, 500: errorResponseSchema } }
     },
-    async () => {
-      bus.publish({ type: "ptt:start", source: "api" });
-      return { status: "started" };
+    async (_req, reply) => {
+      if (runtime.isPttActive()) {
+        return reply.code(409).send({ status: "error", message: "PTT already active" });
+      }
+      try {
+        bus.publish({ type: "ptt:start", source: "api" });
+        const result = await runtime.handlePttStart("api");
+        return {
+          status: "completed",
+          transcript: result?.transcript ?? "",
+          response: result?.response ?? ""
+        };
+      } catch (err) {
+        return reply
+          .code(500)
+          .send({ status: "error", message: (err as Error).message ?? "PTT failed" });
+      }
     }
   );
 
   server.post(
     "/v1/ptt/stop",
     {
-      schema: { response: { 200: pttResponseSchema } }
+      schema: { response: { 200: pttStopResponseSchema, 409: errorResponseSchema } }
     },
-    async () => {
+    async (_req, reply) => {
+      if (!runtime.isPttActive()) {
+        return reply.code(409).send({ status: "error", message: "No active PTT session" });
+      }
       bus.publish({ type: "ptt:stop", source: "api" });
+      runtime.handlePttStop();
       return { status: "stopped" };
     }
   );
@@ -32,11 +55,16 @@ export function registerRoutes(server: FastifyInstance, runtime: AppRuntime, bus
       schema: { response: { 200: cameraResponseSchema } }
     },
     async () => {
-      const result = await runtime.captureWithDetectors();
+      const result = await runtime.captureWithDetectors("api");
+      const motionScore =
+        result.detectors.length > 0
+          ? Math.max(...result.detectors.map((detector) => detector.motionScore))
+          : 0;
       return {
-        paperPresent: result.detectors.paperPresent,
-        motionScore: result.detectors.motionScore,
-        imageBytes: result.capture.length
+        paperPresent: result.detectors.some((detector) => detector.paperPresent),
+        motionScore,
+        imageBytes: result.capture.length,
+        detectors: result.detectors
       };
     }
   );

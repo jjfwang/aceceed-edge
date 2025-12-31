@@ -13,6 +13,9 @@ export interface LlmCloudConfig {
   apiKeyEnv: string;
   model: string;
   baseUrl?: string;
+  temperature?: number;
+  maxTokens?: number;
+  requestTimeoutMs?: number;
 }
 
 export interface LlmConfig {
@@ -100,6 +103,10 @@ export interface CameraCaptureResult {
 export interface DetectorResult {
   paperPresent: boolean;
   motionScore: number;
+}
+
+export interface DetectorRunResult extends DetectorResult {
+  id: string;
 }
 
 export interface PttResult {

@@ -10,6 +10,9 @@ llm:
     apiKeyEnv: "OPENAI_API_KEY"
     model: "gpt-4o-mini"
     baseUrl: "https://api.openai.com/v1"
+    temperature: 0.2
+    maxTokens: 256
+    requestTimeoutMs: 10000
 
 stt:
   backend: "whispercpp"
