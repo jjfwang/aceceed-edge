@@ -1,0 +1,17 @@
+[Unit]
+Description=Aceceed Edge Runtime
+After=network.target
+
+[Service]
+Type=simple
+WorkingDirectory=/opt/aceceed-edge
+Environment=NODE_ENV=production
+Environment=ACECEED_CONFIG=/opt/aceceed-edge/configs/prod.yaml
+ExecStart=/usr/bin/node /opt/aceceed-edge/apps/edge-runtime/dist/main.js
+Restart=on-failure
+RestartSec=2
+User=pi
+Group=pi
+
+[Install]
+WantedBy=multi-user.target

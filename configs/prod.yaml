@@ -1,0 +1,65 @@
+llm:
+  mode: "local"
+  local:
+    llamaServerUrl: "http://127.0.0.1:8080"
+    modelPath: "/opt/models/llama/llama-3.gguf"
+    ctx: 2048
+    temperature: 0.2
+  cloud:
+    provider: "openai"
+    apiKeyEnv: "OPENAI_API_KEY"
+    model: "gpt-4o-mini"
+    baseUrl: "https://api.openai.com/v1"
+
+stt:
+  backend: "whispercpp"
+  whispercpp:
+    binPath: "/usr/local/bin/whisper-cpp-main"
+    modelPath: "/opt/models/whisper/ggml-base.en.bin"
+
+tts:
+  backend: "piper"
+  piper:
+    binPath: "/usr/bin/piper"
+    voicePath: "/opt/models/piper/en_US-amy-medium.onnx"
+    outputSampleRate: 22050
+
+vision:
+  enabled: true
+  capture:
+    backend: "rpicam-still"
+    stillArgs:
+      - "--width"
+      - "1280"
+      - "--height"
+      - "720"
+      - "--quality"
+      - "90"
+
+audio:
+  input:
+    backend: "node-record-lpcm16"
+    device: "default"
+    sampleRate: 16000
+    channels: 1
+    recordSeconds: 4
+    arecordPath: "arecord"
+  output:
+    backend: "aplay"
+    device: "default"
+    aplayPath: "aplay"
+
+runtime:
+  pushToTalkMode: "api"
+  cameraIndicator: true
+  micIndicator: true
+  agents:
+    enabled:
+      - "tutor"
+
+api:
+  host: "0.0.0.0"
+  port: 8000
+
+logging:
+  level: "info"
