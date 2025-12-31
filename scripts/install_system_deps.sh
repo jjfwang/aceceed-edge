@@ -24,11 +24,21 @@ if [ ! -d /opt/whisper.cpp ]; then
 fi
 sudo cmake -S /opt/whisper.cpp -B /opt/whisper.cpp/build -DCMAKE_BUILD_TYPE=Release
 sudo cmake --build /opt/whisper.cpp/build --config Release
-WHISPER_BIN="/opt/whisper.cpp/build/bin/main"
-if [ ! -x "${WHISPER_BIN}" ] && [ -x "/opt/whisper.cpp/build/main" ]; then
-  WHISPER_BIN="/opt/whisper.cpp/build/main"
-elif [ ! -x "${WHISPER_BIN}" ] && [ -x "/opt/whisper.cpp/main" ]; then
-  WHISPER_BIN="/opt/whisper.cpp/main"
+WHISPER_BIN=""
+for candidate in \
+  /opt/whisper.cpp/build/bin/whisper-cli \
+  /opt/whisper.cpp/build/bin/whisper-whisper-cpp-main \
+  /opt/whisper.cpp/build/bin/main \
+  /opt/whisper.cpp/build/main \
+  /opt/whisper.cpp/main; do
+  if [ -x "${candidate}" ]; then
+    WHISPER_BIN="${candidate}"
+    break
+  fi
+done
+if [ -z "${WHISPER_BIN}" ]; then
+  echo "Error: whisper.cpp binary not found after build." >&2
+  exit 1
 fi
 sudo ln -sf "${WHISPER_BIN}" /usr/local/bin/whisper-cpp-main
 
