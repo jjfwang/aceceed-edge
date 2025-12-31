@@ -5,6 +5,7 @@ sudo apt-get update
 sudo apt-get install -y \
   build-essential cmake git pkg-config \
   libopenblas-dev libssl-dev libasound2-dev libgpiod-dev gpiod libcurl4-openssl-dev \
+  espeak-ng espeak-ng-data \
   sox curl wget
 
 if ! command -v node >/dev/null 2>&1; then
