@@ -81,11 +81,10 @@ export class AudioInput {
         await Promise.race([sleep(durationSec * 1000), abortPromise]);
         await stop();
 
-        if (aborted) {
+        const pcm = Buffer.concat(chunks);
+        if (aborted && pcm.length === 0) {
           throw new Error("Recording aborted");
         }
-
-        const pcm = Buffer.concat(chunks);
         const wav = pcmToWav(pcm, this.config.input.sampleRate, this.config.input.channels);
         const outPath = tempPath("aceceed-ptt", ".wav");
         await fs.writeFile(outPath, wav);
@@ -117,6 +116,16 @@ export class AudioInput {
         { signal }
       );
     } catch (err) {
+      if (signal?.aborted) {
+        try {
+          const stat = await fs.stat(outPath);
+          if (stat.size > 44) {
+            return outPath;
+          }
+        } catch {
+          // Ignore and surface the original error below.
+        }
+      }
       throw new Error(`Audio capture failed. Check input device '${this.config.input.device}'.`);
     }
 
