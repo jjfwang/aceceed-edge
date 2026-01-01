@@ -7,13 +7,13 @@ llm:
     ctx: 2048
     temperature: 0.2
     # Option 1: llama.cpp with Llama 3 GGUF
-    backend: "llama.cpp"
-    model: "local"
-    modelPath: "/opt/models/llama/llama-3.gguf"
-    # Option 2: llama.cpp with Qwen3 1.7B GGUF (Q8_0)
     # backend: "llama.cpp"
     # model: "local"
-    # modelPath: "/opt/models/llama/qwen3-1.7b-q8_0.gguf"
+    # modelPath: "/opt/models/llama/llama-3.gguf"
+    # Option 2: llama.cpp with Qwen3 1.7B GGUF (Q8_0)
+    backend: "llama.cpp"
+    model: "local"
+    modelPath: "/opt/models/llama/qwen3-1.7b-q8_0.gguf"
     # Option 3: LLM-8850 Qwen3 service (change api.port if it uses 8000)
     # backend: "llm8850"
     # llm8850:
