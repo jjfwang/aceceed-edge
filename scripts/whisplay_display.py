@@ -26,6 +26,14 @@ except Exception as exc:
     print(f"Failed to import WhisPlayBoard: {exc}", file=sys.stderr)
     sys.exit(1)
 
+try:
+    import RPi.GPIO as GPIO
+
+    if hasattr(GPIO, "PWM") and hasattr(GPIO.PWM, "__del__"):
+        GPIO.PWM.__del__ = lambda self: None  # type: ignore[method-assign]
+except Exception:
+    pass
+
 
 def load_font(size: int) -> ImageFont.FreeTypeFont:
     candidates = [
