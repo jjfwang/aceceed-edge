@@ -24,21 +24,43 @@ export interface LlmConfig {
   cloud: LlmCloudConfig;
 }
 
+export type SttMode = "local" | "cloud";
+
+export interface SttCloudConfig {
+  provider: string;
+  apiKeyEnv: string;
+  baseUrl?: string;
+  model?: string;
+}
+
 export interface SttConfig {
+  mode: SttMode;
   backend: "whispercpp";
   whispercpp: {
     binPath: string;
     modelPath: string;
   };
+  cloud?: SttCloudConfig;
+}
+
+export type TtsMode = "local" | "cloud";
+
+export interface TtsCloudConfig {
+  provider: string;
+  apiKeyEnv: string;
+  baseUrl?: string;
+  voiceId?: string;
 }
 
 export interface TtsConfig {
+  mode: TtsMode;
   backend: "piper";
   piper: {
     binPath: string;
     voicePath: string;
     outputSampleRate: number;
   };
+  cloud?: TtsCloudConfig;
 }
 
 export interface VisionConfig {
@@ -87,6 +109,15 @@ export interface ApiConfig {
 
 export interface LoggingConfig {
   level: "debug" | "info" | "warn" | "error";
+}
+
+export type RuntimeServiceId = "llm" | "stt" | "tts";
+
+export interface RuntimeServiceStatus {
+  id: RuntimeServiceId;
+  backend: string;
+  ready: boolean;
+  details?: string;
 }
 
 export interface AppConfig {

@@ -21,8 +21,8 @@ const config: AppConfig = {
       model: "gpt-4o-mini"
     }
   },
-  stt: { backend: "whispercpp", whispercpp: { binPath: "whisper", modelPath: "model" } },
-  tts: { backend: "piper", piper: { binPath: "piper", voicePath: "voice", outputSampleRate: 22050 } },
+  stt: { mode: "local", backend: "whispercpp", whispercpp: { binPath: "whisper", modelPath: "model" } },
+  tts: { mode: "local", backend: "piper", piper: { binPath: "piper", voicePath: "voice", outputSampleRate: 22050 } },
   vision: { enabled: false, capture: { backend: "rpicam-still", stillArgs: [] } },
   audio: {
     input: {
@@ -184,5 +184,41 @@ describe("AppRuntime", () => {
     const result = await runtime.captureWithDetectors("api");
     expect(result.detectors).toHaveLength(2);
     expect(events).toContain("camera:capture");
+  });
+
+  it("reports llm, stt, and tts service readiness", () => {
+    const logger = pino({ level: "silent" });
+    const bus = new EventBus();
+
+    const audioInput = { record: async () => "/tmp/unused.wav" };
+    const stt = { transcribe: async () => "" };
+    const tts = { synthesize: async () => "/tmp/unused.wav" };
+    const audioOutput = { playWav: async () => undefined };
+    const llm = { generate: async () => "" };
+    const tutor = new TutorAgent(llm, "prompt");
+    const registry = new AgentRegistry([tutor], ["tutor"]);
+    const vision = { captureStill: async () => ({ image: Buffer.from("1234"), mimeType: "image/jpeg" }) };
+
+    const runtime = new AppRuntime(
+      config,
+      logger,
+      bus,
+      audioInput,
+      audioOutput,
+      stt,
+      tts,
+      registry,
+      vision,
+      []
+    );
+
+    const services = runtime.getServiceStatus();
+    expect(services).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ id: "llm", backend: "local:llama.cpp", ready: true }),
+        expect.objectContaining({ id: "stt", backend: "local:whispercpp", ready: true }),
+        expect.objectContaining({ id: "tts", backend: "local:piper", ready: true })
+      ])
+    );
   });
 });

@@ -19,6 +19,7 @@ describe("config schema", () => {
         }
       },
       stt: {
+        mode: "local",
         backend: "whispercpp",
         whispercpp: {
           binPath: "/usr/local/bin/whisper",
@@ -26,6 +27,7 @@ describe("config schema", () => {
         }
       },
       tts: {
+        mode: "local",
         backend: "piper",
         piper: {
           binPath: "/usr/bin/piper",

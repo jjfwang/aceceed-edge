@@ -20,19 +20,37 @@ export const configSchema = z.object({
     })
   }),
   stt: z.object({
+    mode: z.enum(["local", "cloud"]),
     backend: z.enum(["whispercpp"]),
     whispercpp: z.object({
       binPath: z.string().min(1),
       modelPath: z.string().min(1)
-    })
+    }),
+    cloud: z
+      .object({
+        provider: z.string().min(1),
+        apiKeyEnv: z.string().min(1),
+        baseUrl: z.string().url().optional(),
+        model: z.string().min(1).optional()
+      })
+      .optional()
   }),
   tts: z.object({
+    mode: z.enum(["local", "cloud"]),
     backend: z.enum(["piper"]),
     piper: z.object({
       binPath: z.string().min(1),
       voicePath: z.string().min(1),
       outputSampleRate: z.number().int().positive()
-    })
+    }),
+    cloud: z
+      .object({
+        provider: z.string().min(1),
+        apiKeyEnv: z.string().min(1),
+        baseUrl: z.string().url().optional(),
+        voiceId: z.string().min(1).optional()
+      })
+      .optional()
   }),
   vision: z.object({
     enabled: z.boolean(),

@@ -1,5 +1,11 @@
 import type { Logger } from "pino";
-import type { AppConfig, DetectorResult, DetectorRunResult, PttResult } from "@aceceed/shared";
+import type {
+  AppConfig,
+  DetectorResult,
+  DetectorRunResult,
+  PttResult,
+  RuntimeServiceStatus
+} from "@aceceed/shared";
 import type { AudioInput } from "../audio/input.js";
 import type { AudioOutput } from "../audio/output.js";
 import type { SttProvider } from "../audio/stt/base.js";
@@ -154,5 +160,72 @@ export class AppRuntime {
     });
 
     return { capture: capture.image, detectors: results };
+  }
+
+  getServiceStatus(): RuntimeServiceStatus[] {
+    const llmBackend =
+      this.config.llm.mode === "cloud"
+        ? `cloud:${this.config.llm.cloud.provider}`
+        : "local:llama.cpp";
+    const llmHasKey =
+      this.config.llm.mode === "cloud"
+        ? Boolean(process.env[this.config.llm.cloud.apiKeyEnv])
+        : true;
+
+    const services: RuntimeServiceStatus[] = [
+      {
+        id: "llm",
+        backend: llmBackend,
+        ready: llmHasKey,
+        details:
+          this.config.llm.mode === "cloud" && !llmHasKey
+            ? `Missing API key in env ${this.config.llm.cloud.apiKeyEnv}`
+            : undefined
+      },
+      {
+        id: "stt",
+        backend: `${this.config.stt.mode}:${this.config.stt.backend}`,
+        ready:
+          this.config.stt.mode === "cloud"
+            ? Boolean(this.config.stt.cloud?.apiKeyEnv && process.env[this.config.stt.cloud.apiKeyEnv])
+            : Boolean(this.config.stt.whispercpp.binPath && this.config.stt.whispercpp.modelPath),
+        details:
+          this.config.stt.mode === "cloud"
+            ? !this.config.stt.cloud
+              ? "Cloud STT configured without provider details"
+              : !this.config.stt.cloud.apiKeyEnv
+                ? "Cloud STT apiKeyEnv is not configured"
+                : !process.env[this.config.stt.cloud.apiKeyEnv]
+                  ? `Missing API key in env ${this.config.stt.cloud.apiKeyEnv}`
+                  : undefined
+            : this.config.stt.backend === "whispercpp" &&
+                (!this.config.stt.whispercpp.binPath || !this.config.stt.whispercpp.modelPath)
+              ? "whisper.cpp binary or model path is not configured"
+              : undefined
+      },
+      {
+        id: "tts",
+        backend: `${this.config.tts.mode}:${this.config.tts.backend}`,
+        ready:
+          this.config.tts.mode === "cloud"
+            ? Boolean(this.config.tts.cloud?.apiKeyEnv && process.env[this.config.tts.cloud.apiKeyEnv])
+            : Boolean(this.config.tts.piper.binPath && this.config.tts.piper.voicePath),
+        details:
+          this.config.tts.mode === "cloud"
+            ? !this.config.tts.cloud
+              ? "Cloud TTS configured without provider details"
+              : !this.config.tts.cloud.apiKeyEnv
+                ? "Cloud TTS apiKeyEnv is not configured"
+                : !process.env[this.config.tts.cloud.apiKeyEnv]
+                  ? `Missing API key in env ${this.config.tts.cloud.apiKeyEnv}`
+                  : undefined
+            : this.config.tts.backend === "piper" &&
+                (!this.config.tts.piper.binPath || !this.config.tts.piper.voicePath)
+              ? "Piper binary or voice path is not configured"
+              : undefined
+      }
+    ];
+
+    return services;
   }
 }

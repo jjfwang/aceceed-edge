@@ -15,12 +15,14 @@ llm:
     requestTimeoutMs: 10000
 
 stt:
+  mode: "local"
   backend: "whispercpp"
   whispercpp:
     binPath: "/usr/local/bin/whisper-cpp-main"
     modelPath: "/opt/models/whisper/ggml-base.en.bin"
 
 tts:
+  mode: "local"
   backend: "piper"
   piper:
     binPath: "/usr/bin/piper"

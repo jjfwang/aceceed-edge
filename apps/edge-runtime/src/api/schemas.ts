@@ -46,3 +46,23 @@ export const cameraResponseSchema = {
   },
   required: ["paperPresent", "motionScore", "imageBytes", "detectors"]
 };
+
+export const runtimeServicesResponseSchema = {
+  type: "object",
+  properties: {
+    services: {
+      type: "array",
+      items: {
+        type: "object",
+        properties: {
+          id: { type: "string", enum: ["llm", "stt", "tts"] },
+          backend: { type: "string" },
+          ready: { type: "boolean" },
+          details: { type: "string" }
+        },
+        required: ["id", "backend", "ready"]
+      }
+    }
+  },
+  required: ["services"]
+};
