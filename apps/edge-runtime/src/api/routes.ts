@@ -4,6 +4,7 @@ import type { EventBus } from "../runtime/eventBus.js";
 import {
   cameraResponseSchema,
   errorResponseSchema,
+  runtimeServicesResponseSchema,
   pttStartResponseSchema,
   pttStopResponseSchema
 } from "./schemas.js";
@@ -66,6 +67,16 @@ export function registerRoutes(server: FastifyInstance, runtime: AppRuntime, bus
         imageBytes: result.capture.length,
         detectors: result.detectors
       };
+    }
+  );
+
+  server.get(
+    "/v1/runtime/services",
+    {
+      schema: { response: { 200: runtimeServicesResponseSchema } }
+    },
+    async () => {
+      return { services: runtime.getServiceStatus() };
     }
   );
 }
