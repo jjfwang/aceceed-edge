@@ -3,6 +3,7 @@ export type LlmProvider = "openai";
 
 export interface LlmLocalConfig {
   llamaServerUrl: string;
+  model?: string;
   modelPath?: string;
   ctx: number;
   temperature: number;
@@ -39,6 +40,7 @@ export interface SttConfig {
   whispercpp: {
     binPath: string;
     modelPath: string;
+    language?: string;
   };
   cloud?: SttCloudConfig;
 }

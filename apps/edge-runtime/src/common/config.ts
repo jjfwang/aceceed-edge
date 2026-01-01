@@ -50,6 +50,10 @@ function applyEnvOverrides(config: AppConfig): AppConfig {
     config.stt.whispercpp.modelPath = env.ACECEED_STT_MODEL;
   }
 
+  if (env.ACECEED_STT_LANGUAGE) {
+    config.stt.whispercpp.language = env.ACECEED_STT_LANGUAGE;
+  }
+
   if (env.ACECEED_TTS_BIN) {
     config.tts.piper.binPath = env.ACECEED_TTS_BIN;
   }

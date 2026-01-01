@@ -2,6 +2,7 @@ llm:
   mode: "local"
   local:
     llamaServerUrl: "http://127.0.0.1:8080"
+    model: "local"
     modelPath: "/opt/models/llama/llama-3.gguf"
     ctx: 2048
     temperature: 0.2
@@ -19,7 +20,8 @@ stt:
   backend: "whispercpp"
   whispercpp:
     binPath: "/usr/local/bin/whisper-cpp-main"
-    modelPath: "/opt/models/whisper/ggml-base.en.bin"
+    modelPath: "/opt/models/whisper/ggml-base.bin"
+    language: "auto"
 
 tts:
   mode: "local"

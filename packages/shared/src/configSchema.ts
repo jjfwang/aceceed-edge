@@ -5,6 +5,7 @@ export const configSchema = z.object({
     mode: z.enum(["local", "cloud"]),
     local: z.object({
       llamaServerUrl: z.string().url(),
+      model: z.string().min(1).optional(),
       modelPath: z.string().optional(),
       ctx: z.number().int().positive(),
       temperature: z.number().min(0).max(1)
@@ -24,7 +25,8 @@ export const configSchema = z.object({
     backend: z.enum(["whispercpp"]),
     whispercpp: z.object({
       binPath: z.string().min(1),
-      modelPath: z.string().min(1)
+      modelPath: z.string().min(1),
+      language: z.string().min(1).optional()
     }),
     cloud: z
       .object({

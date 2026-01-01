@@ -6,6 +6,7 @@ sudo apt-get install -y \
   build-essential cmake git pkg-config \
   libopenblas-dev libssl-dev libasound2-dev libgpiod-dev gpiod libcurl4-openssl-dev \
   espeak-ng espeak-ng-data \
+  python3-pil python3-rpi.gpio python3-spidev \
   sox curl wget
 
 if ! command -v node >/dev/null 2>&1; then
@@ -68,5 +69,9 @@ if [ ! -x "${PIPER_BIN}" ] && [ -x "/opt/piper/piper" ]; then
   PIPER_BIN="/opt/piper/piper"
 fi
 sudo ln -sf "${PIPER_BIN}" /usr/bin/piper
+if [ -d /usr/lib/aarch64-linux-gnu/espeak-ng-data ] && [ ! -e /usr/share/espeak-ng-data ]; then
+  sudo mkdir -p /usr/share
+  sudo ln -s /usr/lib/aarch64-linux-gnu/espeak-ng-data /usr/share/espeak-ng-data
+fi
 
 echo "System dependencies installed. Use scripts/setup_models.sh to download models."

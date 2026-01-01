@@ -18,7 +18,7 @@ export class LocalLlamaCppClient implements LlmClient {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          model: "local",
+          model: this.config.local.model ?? "local",
           temperature: this.config.local.temperature,
           max_tokens: 256,
           messages

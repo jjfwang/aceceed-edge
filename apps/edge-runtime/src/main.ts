@@ -17,6 +17,7 @@ import { SimpleActivityDetector } from "./vision/detectors/simpleActivity.js";
 import { HailoStubDetector } from "./vision/detectors/hailoStub.js";
 import { AppRuntime } from "./runtime/appRuntime.js";
 import { startWhisplayPtt } from "./runtime/whisplayPtt.js";
+import { startWhisplayDisplay } from "./runtime/whisplayDisplay.js";
 import { createServer } from "./api/server.js";
 
 function setupKeyboard(bus: EventBus, logger: ReturnType<typeof createLogger>) {
@@ -93,8 +94,10 @@ try {
   logger.info(`API listening on http://${config.api.host}:${config.api.port}`);
 
   let stopWhisplay: (() => void) | undefined;
+  let stopDisplay: (() => void) | undefined;
   if (config.runtime.pushToTalkMode === "whisplay") {
     stopWhisplay = await startWhisplayPtt(bus, config, logger);
+    stopDisplay = startWhisplayDisplay(bus, config, logger);
   }
 
   let shuttingDown = false;
@@ -106,6 +109,7 @@ try {
     logger.info({ signal }, "Shutting down");
     try {
       stopWhisplay?.();
+      stopDisplay?.();
       await server.close();
     } catch (err) {
       logger.error({ err }, "Shutdown failed");

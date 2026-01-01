@@ -11,16 +11,22 @@ export class WhisperCppStt implements SttProvider {
     const outPrefix = tempPath("whisper", "");
     const outputTxt = `${outPrefix}.txt`;
 
+    const args = [
+      "-m",
+      this.config.whispercpp.modelPath,
+      "-f",
+      audioPath,
+      "-otxt",
+      "-of",
+      outPrefix
+    ];
+
+    if (this.config.whispercpp.language) {
+      args.push("-l", this.config.whispercpp.language);
+    }
+
     try {
-      await runCommand(this.config.whispercpp.binPath, [
-        "-m",
-        this.config.whispercpp.modelPath,
-        "-f",
-        audioPath,
-        "-otxt",
-        "-of",
-        outPrefix
-      ]);
+      await runCommand(this.config.whispercpp.binPath, args);
     } catch (err) {
       throw new Error(
         `whisper.cpp failed. Check binPath '${this.config.whispercpp.binPath}' and modelPath '${this.config.whispercpp.modelPath}'.`
