@@ -19,7 +19,9 @@
 - After reboot, `aplay -l` should show `wm8960soundcard`; `default` is remapped to it.
 - Set `audio.input.device` and `audio.output.device` to `default` or `hw:wm8960soundcard`.
 - Mic/speaker quick test: `arecord -D default -d 5 /tmp/test.wav && aplay -D default /tmp/test.wav`.
-- For the LCD display, `python3-pil`, `python3-rpi.gpio`, and `python3-spidev` must be installed.
+- For the LCD display, `python3-pil`, `python3-rpi-lgpio`, and `python3-spidev` must be installed.
+- LCD quick test (from the vendor repo): `cd /opt/whisplay/example && sudo bash run_test.sh`.
+- If you see `Cannot determine SOC peripheral base address` on Pi 5, install `python3-rpi-lgpio` and remove any `RPi.GPIO` from pip.
 
 ## Whisplay Button PTT
 - Set `runtime.pushToTalkMode` to `whisplay` in `configs/*.yaml`.

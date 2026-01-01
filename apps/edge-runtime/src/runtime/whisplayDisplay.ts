@@ -50,7 +50,10 @@ export function startWhisplayDisplay(
       current.kill("SIGTERM");
     }
 
-    const child = spawn("python3", [scriptPath], { stdio: ["pipe", "ignore", "pipe"] });
+    const child = spawn("python3", [scriptPath], {
+      stdio: ["pipe", "ignore", "pipe"],
+      env: { ...process.env, PYTHONNOUSERSITE: "1" }
+    });
     child.stdin?.write(text);
     child.stdin?.end();
     child.stderr?.on("data", (data) => {

@@ -38,6 +38,11 @@ Offline-first "desk tutor" stack for Raspberry Pi 5 (8GB). Camera + audio, local
 ```bash
 echo "Hello Whisplay" | python3 scripts/whisplay_display.py
 ```
+Full vendor test:
+```bash
+cd /opt/whisplay/example
+sudo bash run_test.sh
+```
 
 ## Key Endpoints
 - `POST /v1/ptt/start` + `POST /v1/ptt/stop`
