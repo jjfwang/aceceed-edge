@@ -10,7 +10,7 @@ PIPER_URL="${PIPER_URL:-https://huggingface.co/rhasspy/piper-voices/resolve/main
 PIPER_CONFIG_URL="${PIPER_CONFIG_URL:-https://huggingface.co/rhasspy/piper-voices/resolve/main/en/en_US/amy/medium/en_US-amy-medium.onnx.json}"
 PIPER_ZH_URL="${PIPER_ZH_URL:-}"
 PIPER_ZH_CONFIG_URL="${PIPER_ZH_CONFIG_URL:-}"
-LLAMA_URL="${LLAMA_URL:-https://huggingface.co/TheBloke/TinyLlama-1.1B-Chat-v1.0-GGUF/resolve/main/tinyllama-1.1b-chat-v1.0.Q4_K_M.gguf}"
+QWEN3_URL="${QWEN3_URL:-${LLAMA_URL:-https://huggingface.co/Qwen/Qwen3-1.7B-GGUF/resolve/main/Qwen3-1.7B-Q8_0.gguf}}"
 
 download() {
   local url="$1"
@@ -40,7 +40,7 @@ fi
 if [[ -n "${PIPER_ZH_CONFIG_URL}" ]]; then
   download "$PIPER_ZH_CONFIG_URL" "/opt/models/piper/zh_CN-huayan-medium.onnx.json"
 fi
-download "$LLAMA_URL" "/opt/models/llama/llama-3.gguf"
+download "$QWEN3_URL" "/opt/models/llama/qwen3-1.7b-q8_0.gguf"
 
 echo "Downloaded models:"
 echo "  /opt/models/whisper/ggml-base.bin"
@@ -52,5 +52,5 @@ fi
 if [[ -n "${PIPER_ZH_CONFIG_URL}" ]]; then
   echo "  /opt/models/piper/zh_CN-huayan-medium.onnx.json"
 fi
-echo "  /opt/models/llama/llama-3.gguf"
+echo "  /opt/models/llama/qwen3-1.7b-q8_0.gguf (Qwen3 1.7B)"
 echo "Update configs/*.yaml paths if you use different filenames."

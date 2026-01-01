@@ -6,14 +6,14 @@ llm:
     llamaServerUrl: "http://127.0.0.1:8080" # used by llama.cpp
     ctx: 2048
     temperature: 0.2
-    # Option 1: llama.cpp with Llama model
+    # Option 1: llama.cpp with Llama 3 GGUF
     backend: "llama.cpp"
     model: "local"
     modelPath: "/opt/models/llama/llama-3.gguf"
-    # Option 2: llama.cpp with Qwen3 GGUF
+    # Option 2: llama.cpp with Qwen3 1.7B GGUF (Q8_0)
     # backend: "llama.cpp"
     # model: "local"
-    # modelPath: "/opt/models/llama/qwen3-4b.gguf"
+    # modelPath: "/opt/models/llama/qwen3-1.7b-q8_0.gguf"
     # Option 3: LLM-8850 Qwen3 service (change api.port if it uses 8000)
     # backend: "llm8850"
     # llm8850:

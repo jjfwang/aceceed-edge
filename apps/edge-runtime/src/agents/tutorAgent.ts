@@ -52,7 +52,7 @@ function buildSystemPrompt(base: string, language: string | null): string {
     base,
     `Respond only in ${language}. Do not translate or switch languages.`,
     "Do not add prefatory labels like 'Answer:' or language names."
-  ].join("\n");
+  ].filter(Boolean).join("\n");
 }
 
 function responseMatchesLanguage(response: string, language: string): boolean {
@@ -77,6 +77,7 @@ function buildTranslationMessages(text: string, language: string) {
     { role: "user" as const, content: text }
   ];
 }
+
 
 export class TutorAgent implements Agent {
   id = "tutor";

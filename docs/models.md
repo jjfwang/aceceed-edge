@@ -15,12 +15,14 @@
 - For multiple languages, configure `tts.piper.voiceByLang` with language keys like `en`, `zh`, `ja`, `ko`.
 
 ## Llama.cpp (LLM)
-- GGUF models under `/opt/models/llama/`
+- GGUF models under `/opt/models/llama/` (directory name is historical; it can store Qwen3, Llama, etc.)
 - Configure in `configs/*.yaml` `llm.local.modelPath`
-- Start llama-server with:
+- Start llama-server with Qwen3 1.7B:
+  - `/usr/local/bin/llama-server -m /opt/models/llama/qwen3-1.7b-q8_0.gguf -c 2048`
+- Example for Llama 3 instead:
   - `/usr/local/bin/llama-server -m /opt/models/llama/llama-3.gguf -c 2048`
 - Optional (systemd) example:
-  - `sudo /usr/local/bin/llama-server -m /opt/models/llama/llama-3.gguf -c 2048 --host 127.0.0.1 --port 8080`
+  - `sudo /usr/local/bin/llama-server -m /opt/models/llama/qwen3-1.7b-q8_0.gguf -c 2048 --host 127.0.0.1 --port 8080`
 
 ## LLM-8850 Qwen3 (LLM)
 - The LLM-8850 runtime is a separate service that hosts the Qwen3 model locally.

@@ -54,7 +54,7 @@ sudo bash run_test.sh
 - `GET /v1/events` (WebSocket)
 
 ## LLM Backends
-- Local llama.cpp: set `llm.mode: local` and `llm.local.backend: "llama.cpp"`, then run `llama-server`.
+- Local llama.cpp (Qwen3 1.7B or Llama 3): set `llm.mode: local` and `llm.local.backend: "llama.cpp"`, then run `llama-server`.
 - LLM-8850 Qwen3: run the vendor LLM-8850 service, then set `llm.mode: local`, `llm.local.backend: "llm8850"`, and configure `llm.local.llm8850.host`.
 - Cloud: set `llm.mode: cloud` and `OPENAI_API_KEY` (or custom env key).
 
