@@ -1,7 +1,7 @@
 # Models
 
 ## Whisper.cpp (STT)
-- Model files under `/opt/models/whisper/`
+- Model files under `/opt/models/whisper/` (default download: `ggml-medium.bin`).
 - Configure in `configs/*.yaml` `stt.whispercpp.modelPath`
 - Set `stt.whispercpp.language: "auto"` to enable multilingual transcription (requires non-`.en` models).
 

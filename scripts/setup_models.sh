@@ -5,7 +5,7 @@ sudo mkdir -p /opt/models/whisper /opt/models/piper /opt/models/llama
 
 echo "Downloading models to /opt/models/..."
 
-WHISPER_URL="${WHISPER_URL:-https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-base.bin}"
+WHISPER_URL="${WHISPER_URL:-https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-medium.bin}"
 PIPER_URL="${PIPER_URL:-https://huggingface.co/rhasspy/piper-voices/resolve/main/en/en_US/amy/medium/en_US-amy-medium.onnx}"
 PIPER_CONFIG_URL="${PIPER_CONFIG_URL:-https://huggingface.co/rhasspy/piper-voices/resolve/main/en/en_US/amy/medium/en_US-amy-medium.onnx.json}"
 PIPER_ZH_URL="${PIPER_ZH_URL:-}"
@@ -31,7 +31,7 @@ download() {
   fi
 }
 
-download "$WHISPER_URL" "/opt/models/whisper/ggml-base.bin"
+download "$WHISPER_URL" "/opt/models/whisper/ggml-medium.bin"
 download "$PIPER_URL" "/opt/models/piper/en_US-amy-medium.onnx"
 download "$PIPER_CONFIG_URL" "/opt/models/piper/en_US-amy-medium.onnx.json"
 if [[ -n "${PIPER_ZH_URL}" ]]; then
@@ -43,7 +43,7 @@ fi
 download "$QWEN3_URL" "/opt/models/llama/qwen3-1.7b-q8_0.gguf"
 
 echo "Downloaded models:"
-echo "  /opt/models/whisper/ggml-base.bin"
+echo "  /opt/models/whisper/ggml-medium.bin"
 echo "  /opt/models/piper/en_US-amy-medium.onnx"
 echo "  /opt/models/piper/en_US-amy-medium.onnx.json"
 if [[ -n "${PIPER_ZH_URL}" ]]; then

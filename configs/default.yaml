@@ -39,7 +39,7 @@ stt:
   backend: "whispercpp"
   whispercpp:
     binPath: "/usr/local/bin/whisper-cpp-main"
-    modelPath: "/opt/models/whisper/ggml-base.bin"
+    modelPath: "/opt/models/whisper/ggml-medium.bin"
     language: "auto"
 
 tts:
