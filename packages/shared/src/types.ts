@@ -1,12 +1,26 @@
 export type LlmMode = "local" | "cloud";
 export type LlmProvider = "openai";
+export type LlmLocalBackend = "llama.cpp" | "llm8850";
+
+export interface Llm8850Config {
+  host: string;
+  temperature?: number;
+  topK?: number;
+  requestTimeoutMs?: number;
+  pollIntervalMs?: number;
+  maxWaitMs?: number;
+  enableThinking?: boolean;
+  resetOnRequest?: boolean;
+}
 
 export interface LlmLocalConfig {
+  backend?: LlmLocalBackend;
   llamaServerUrl: string;
   model?: string;
   modelPath?: string;
   ctx: number;
   temperature: number;
+  llm8850?: Llm8850Config;
 }
 
 export interface LlmCloudConfig {

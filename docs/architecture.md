@@ -15,6 +15,7 @@
 
 ## IPC Boundaries
 - whisper.cpp, piper, llama.cpp executed via subprocess.
+- Optional LLM-8850 Qwen3 backend is accessed via HTTP.
 - Vision capture runs via `rpicam-still` or `libcamera-still` subprocess.
 - Optional camera-service can be added for Picamera2.
 

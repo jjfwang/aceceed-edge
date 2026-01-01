@@ -163,14 +163,17 @@ export class AppRuntime {
   }
 
   getServiceStatus(): RuntimeServiceStatus[] {
+    const localLlmBackend = this.config.llm.local.backend ?? "llama.cpp";
     const llmBackend =
       this.config.llm.mode === "cloud"
         ? `cloud:${this.config.llm.cloud.provider}`
-        : "local:llama.cpp";
+        : `local:${localLlmBackend}`;
     const llmHasKey =
       this.config.llm.mode === "cloud"
         ? Boolean(process.env[this.config.llm.cloud.apiKeyEnv])
-        : true;
+        : localLlmBackend === "llm8850"
+          ? Boolean(this.config.llm.local.llm8850?.host)
+          : true;
 
     const services: RuntimeServiceStatus[] = [
       {
@@ -180,7 +183,9 @@ export class AppRuntime {
         details:
           this.config.llm.mode === "cloud" && !llmHasKey
             ? `Missing API key in env ${this.config.llm.cloud.apiKeyEnv}`
-            : undefined
+            : localLlmBackend === "llm8850" && !llmHasKey
+              ? "LLM-8850 host is not configured"
+              : undefined
       },
       {
         id: "stt",

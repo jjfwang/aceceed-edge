@@ -4,11 +4,24 @@ export const configSchema = z.object({
   llm: z.object({
     mode: z.enum(["local", "cloud"]),
     local: z.object({
+      backend: z.enum(["llama.cpp", "llm8850"]).optional(),
       llamaServerUrl: z.string().url(),
       model: z.string().min(1).optional(),
       modelPath: z.string().optional(),
       ctx: z.number().int().positive(),
-      temperature: z.number().min(0).max(1)
+      temperature: z.number().min(0).max(1),
+      llm8850: z
+        .object({
+          host: z.string().url(),
+          temperature: z.number().min(0).max(1).optional(),
+          topK: z.number().int().positive().optional(),
+          requestTimeoutMs: z.number().int().positive().optional(),
+          pollIntervalMs: z.number().int().min(0).optional(),
+          maxWaitMs: z.number().int().positive().optional(),
+          enableThinking: z.boolean().optional(),
+          resetOnRequest: z.boolean().optional()
+        })
+        .optional()
     }),
     cloud: z.object({
       provider: z.enum(["openai"]),

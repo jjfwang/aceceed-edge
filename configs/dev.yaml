@@ -1,11 +1,30 @@
 llm:
   mode: "local"
   local:
-    llamaServerUrl: "http://127.0.0.1:8080"
-    model: "local"
-    modelPath: "/opt/models/llama/llama-3.gguf"
+    # LLM backends (pick ONE; the options are mutually exclusive).
+    # Common settings:
+    llamaServerUrl: "http://127.0.0.1:8080" # used by llama.cpp
     ctx: 2048
     temperature: 0.2
+    # Option 1: llama.cpp with Llama model
+    backend: "llama.cpp"
+    model: "local"
+    modelPath: "/opt/models/llama/llama-3.gguf"
+    # Option 2: llama.cpp with Qwen3 GGUF
+    # backend: "llama.cpp"
+    # model: "local"
+    # modelPath: "/opt/models/llama/qwen3-4b.gguf"
+    # Option 3: LLM-8850 Qwen3 service (change api.port if it uses 8000)
+    # backend: "llm8850"
+    # llm8850:
+    #   host: "http://127.0.0.1:8000"
+    #   temperature: 0.2
+    #   topK: 40
+    #   requestTimeoutMs: 10000
+    #   pollIntervalMs: 200
+    #   maxWaitMs: 60000
+    #   enableThinking: true
+    #   resetOnRequest: true
   cloud:
     provider: "openai"
     apiKeyEnv: "OPENAI_API_KEY"
@@ -70,7 +89,7 @@ runtime:
 
 api:
   host: "127.0.0.1"
-  port: 8000
+  port: 8000 # change if LLM-8850 uses 8000
 
 logging:
   level: "debug"

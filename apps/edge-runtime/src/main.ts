@@ -9,6 +9,7 @@ import { WhisperCppStt } from "./audio/stt/whisperCpp.js";
 import { PiperTts } from "./audio/tts/piper.js";
 import { LocalLlamaCppClient } from "./llm/localLlamaCpp.js";
 import { OpenAiClient } from "./llm/openaiApi.js";
+import { Llm8850Client } from "./llm/llm8850Api.js";
 import { TutorAgent } from "./agents/tutorAgent.js";
 import { CoachAgent } from "./agents/coachAgent.js";
 import { AgentRegistry } from "./agents/registry.js";
@@ -52,10 +53,13 @@ const audioOutput = new AudioOutput(config.audio, logger);
 const stt = new WhisperCppStt(config.stt, logger);
 const tts = new PiperTts(config.tts, logger);
 
+const localBackend = config.llm.local.backend ?? "llama.cpp";
 const llm =
   config.llm.mode === "cloud"
     ? new OpenAiClient(config.llm, logger)
-    : new LocalLlamaCppClient(config.llm, logger);
+    : localBackend === "llm8850"
+      ? new Llm8850Client(config.llm, logger)
+      : new LocalLlamaCppClient(config.llm, logger);
 
 const promptUrl = new URL("./llm/prompts/systemPrompt.txt", import.meta.url);
 const systemPrompt = await readTextFile(fileURLToPath(promptUrl));

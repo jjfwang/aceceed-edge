@@ -7,6 +7,11 @@ Offline-first "desk tutor" stack for Raspberry Pi 5 (8GB). Camera + audio, local
    ```bash
    bash scripts/install_system_deps.sh
    ```
+1.5) If using the Whisplay LCD, install the driver and reboot:
+   ```bash
+   bash scripts/install_whisplay.sh
+   sudo reboot
+   ```
 2) Download models (Whisper, Piper, LLaMA):
    ```bash
    bash scripts/setup_models.sh
@@ -29,13 +34,20 @@ Offline-first "desk tutor" stack for Raspberry Pi 5 (8GB). Camera + audio, local
    pnpm -C apps/edge-runtime test -- --coverage
    ```
 
+## Whisplay LCD Quick Test
+```bash
+echo "Hello Whisplay" | python3 scripts/whisplay_display.py
+```
+
 ## Key Endpoints
 - `POST /v1/ptt/start` + `POST /v1/ptt/stop`
 - `POST /v1/camera/capture`
 - `GET /v1/events` (WebSocket)
 
-## Offline/Cloud LLM
-Set `llm.mode` in `configs/*.yaml` to `local` or `cloud`. For cloud, set `OPENAI_API_KEY` (or custom env key).
+## LLM Backends
+- Local llama.cpp: set `llm.mode: local` and `llm.local.backend: "llama.cpp"`, then run `llama-server`.
+- LLM-8850 Qwen3: run the vendor LLM-8850 service, then set `llm.mode: local`, `llm.local.backend: "llm8850"`, and configure `llm.local.llm8850.host`.
+- Cloud: set `llm.mode: cloud` and `OPENAI_API_KEY` (or custom env key).
 
 ## Docs
 See `context.md` and `docs/architecture.md` for the full system overview.

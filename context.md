@@ -44,7 +44,7 @@ Aceceed Edge is an offline-first desk tutor for Raspberry Pi 5. It provides came
 - Dev (keyboard PTT): `pnpm -C apps/edge-runtime dev`
 - Prod: `pnpm -C apps/edge-runtime build` then `pnpm -C apps/edge-runtime start`
 - Systemd: copy `configs/systemd/aceceed-edge.service` to `/etc/systemd/system/`
-- Local LLM: start llama-server separately (see `docs/models.md`)
+- Local LLM: start llama-server or LLM-8850 service separately (see `docs/models.md`)
 
 ## Add a New Agent
 1. Create a new agent in `apps/edge-runtime/src/agents/` implementing `Agent`.
@@ -63,7 +63,8 @@ Aceceed Edge is an offline-first desk tutor for Raspberry Pi 5. It provides came
 - Env overrides:
   - `ACECEED_CONFIG` (config file path)
   - `ACECEED_LLM_MODE`, `ACECEED_LLAMA_SERVER_URL`, `ACECEED_LLAMA_MODEL_PATH`
-  - `ACECEED_STT_BIN`, `ACECEED_STT_MODEL`
+  - `ACECEED_LLM_LOCAL_BACKEND`, `ACECEED_LLM8850_HOST`
+  - `ACECEED_STT_BIN`, `ACECEED_STT_MODEL`, `ACECEED_STT_LANGUAGE`
   - `ACECEED_TTS_BIN`, `ACECEED_TTS_VOICE`
   - `ACECEED_VISION_BACKEND`, `ACECEED_API_PORT`, `ACECEED_AUDIO_DEVICE`
   - `OPENAI_API_KEY` (or custom env name from config)

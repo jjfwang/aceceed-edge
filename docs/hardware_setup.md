@@ -29,6 +29,11 @@
 ## Whisplay Display
 - The runtime will render `agent:response` text on the Whisplay LCD when PTT mode is `whisplay`.
 
+## LLM-8850 M.2 HAT
+- Start the LLM-8850 Qwen3 service, then set `llm.local.backend: "llm8850"` and `llm.local.llm8850.host`.
+- If the LLM-8850 service binds to port 8000, change `api.port` for the runtime.
+- Use your installer docs to download the model to the LLM-8850 runtime; the runtime calls its local HTTP API.
+
 ## Performance Tips
 - Use a heatsink/fan on Pi 5.
 - Prefer a lightweight GGUF model for llama.cpp.

@@ -34,12 +34,23 @@ function applyEnvOverrides(config: AppConfig): AppConfig {
     config.llm.mode = env.ACECEED_LLM_MODE as AppConfig["llm"]["mode"];
   }
 
+  if (env.ACECEED_LLM_LOCAL_BACKEND) {
+    config.llm.local.backend = env.ACECEED_LLM_LOCAL_BACKEND as AppConfig["llm"]["local"]["backend"];
+  }
+
   if (env.ACECEED_LLAMA_SERVER_URL) {
     config.llm.local.llamaServerUrl = env.ACECEED_LLAMA_SERVER_URL;
   }
 
   if (env.ACECEED_LLAMA_MODEL_PATH) {
     config.llm.local.modelPath = env.ACECEED_LLAMA_MODEL_PATH;
+  }
+
+  if (env.ACECEED_LLM8850_HOST) {
+    config.llm.local.llm8850 = {
+      ...(config.llm.local.llm8850 ?? { host: env.ACECEED_LLM8850_HOST }),
+      host: env.ACECEED_LLM8850_HOST
+    };
   }
 
   if (env.ACECEED_STT_BIN) {
