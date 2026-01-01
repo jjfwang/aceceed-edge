@@ -48,15 +48,22 @@ export function startWhisplayDisplay(
 
   const spawnDisplay = () => {
     const child = spawn("python3", [scriptPath], {
-      stdio: ["pipe", "ignore", "pipe"],
+      stdio: ["ignore", "pipe", "pipe"],
       env: {
         ...process.env,
         PYTHONNOUSERSITE: "1",
+        PYTHONUNBUFFERED: "1",
         WHISPLAY_SOCKET: "1",
         WHISPLAY_HOST: "127.0.0.1",
         WHISPLAY_PORT: "12345",
         WHISPLAY_SKIP_BUTTON: "1",
         WHISPLAY_BRIGHTNESS: "60"
+      }
+    });
+    child.stdout?.on("data", (data) => {
+      const output = data.toString().trim();
+      if (output) {
+        logger.info({ output }, "Whisplay display output");
       }
     });
     child.stderr?.on("data", (data) => {
