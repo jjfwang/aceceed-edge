@@ -42,6 +42,9 @@ export function startWhisplayDisplay(
 
   let current: ReturnType<typeof spawn> | undefined;
   let client: net.Socket | undefined;
+  let connecting = false;
+  let reconnectTimer: NodeJS.Timeout | undefined;
+  const pending: string[] = [];
 
   const spawnDisplay = () => {
     const child = spawn("python3", [scriptPath], {
@@ -70,18 +73,59 @@ export function startWhisplayDisplay(
     return child;
   };
 
+  const scheduleReconnect = () => {
+    if (reconnectTimer) {
+      return;
+    }
+    reconnectTimer = setTimeout(() => {
+      reconnectTimer = undefined;
+      connectClient();
+    }, 500);
+  };
+
+  const flushQueue = () => {
+    if (!client || client.destroyed) {
+      return;
+    }
+    while (pending.length > 0) {
+      const payload = pending.shift();
+      if (payload) {
+        client.write(payload);
+      }
+    }
+  };
+
   const connectClient = () => {
     if (client && !client.destroyed) {
-      return client;
+      return;
     }
-    client = new net.Socket();
-    client.on("error", (err) => {
-      logger.warn({ err }, "Whisplay display socket error");
-      client?.destroy();
-      client = undefined;
+    if (connecting) {
+      return;
+    }
+    connecting = true;
+    const socket = new net.Socket();
+    socket.on("connect", () => {
+      connecting = false;
+      client = socket;
+      flushQueue();
     });
-    client.connect(12345, "127.0.0.1");
-    return client;
+    socket.on("error", (err) => {
+      logger.warn({ err }, "Whisplay display socket error");
+      socket.destroy();
+      if (client === socket) {
+        client = undefined;
+      }
+      connecting = false;
+      scheduleReconnect();
+    });
+    socket.on("close", () => {
+      if (client === socket) {
+        client = undefined;
+      }
+      connecting = false;
+      scheduleReconnect();
+    });
+    socket.connect(12345, "127.0.0.1");
   };
 
   const render = (status: string | null, text: string) => {
@@ -94,26 +138,38 @@ export function startWhisplayDisplay(
       current = spawnDisplay();
     }
 
-    const socket = connectClient();
+    connectClient();
     const payload = JSON.stringify({ status: status ?? undefined, text: sanitized });
-    socket.write(`${payload}\n`);
+    const line = `${payload}\n`;
+    if (client && !client.destroyed) {
+      client.write(line);
+    } else {
+      if (pending.length > 10) {
+        pending.shift();
+      }
+      pending.push(line);
+    }
   };
 
   const handler = (event: AppEvent) => {
     if (event.type === "ptt:start") {
-      render("Listening...", "");
+      render("listening", "");
       return;
     }
     if (event.type === "ptt:stop") {
-      render("Processing...", "");
+      render("processing", "");
       return;
     }
     if (event.type === "agent:response") {
-      render("Responding...", event.text);
+      render(null, event.text);
+      return;
+    }
+    if (event.type === "tts:spoken") {
+      render(null, event.text);
       return;
     }
     if (event.type === "error") {
-      render("Error", event.message);
+      render("error", event.message);
     }
   };
 
@@ -128,6 +184,10 @@ export function startWhisplayDisplay(
     if (client && !client.destroyed) {
       client.destroy();
       client = undefined;
+    }
+    if (reconnectTimer) {
+      clearTimeout(reconnectTimer);
+      reconnectTimer = undefined;
     }
   };
 }

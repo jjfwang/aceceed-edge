@@ -129,37 +129,111 @@ def image_to_rgb565(img: Image.Image) -> list[int]:
     return data
 
 
-def render_status_text(board: WhisPlayBoard, status: str | None, text: str) -> None:
-    if not text:
-        text = " "
+class DisplayState:
+    def __init__(self, text_font: ImageFont.FreeTypeFont, status_font: ImageFont.FreeTypeFont, max_width: int):
+        self.text_font = text_font
+        self.status_font = status_font
+        self.max_width = max_width
+        self.text = ""
+        self.status: str | None = None
+        self.lines: list[str] = []
+        self.scroll_offset = 0
+        self.line_height = int(text_font.getbbox("Ag")[3] - text_font.getbbox("Ag")[1]) + 6
+        self.status_height = int(status_font.getbbox("Ag")[3] - status_font.getbbox("Ag")[1]) + 6
+        self.content_height = 0
+        self.lock = threading.Lock()
+        self.measure_draw = ImageDraw.Draw(Image.new("RGB", (1, 1)))
 
-    width = board.LCD_WIDTH
-    height = board.LCD_HEIGHT
-    margin = 12
+    def update(self, status: str | None, text: str) -> None:
+        text = " ".join(text.split())
+        with self.lock:
+            self.status = status
+            if text != self.text:
+                self.text = text
+                self.lines = wrap_text(self.measure_draw, text, self.text_font, self.max_width) or [" "]
+                self.scroll_offset = 0
+                self.content_height = len(self.lines) * self.line_height
+
+    def snapshot(self) -> tuple[str | None, list[str], int, int]:
+        with self.lock:
+            return self.status, list(self.lines), self.scroll_offset, self.content_height
+
+    def advance_scroll(self, area_height: int, speed_px: int) -> None:
+        if self.content_height <= area_height:
+            return
+        max_scroll = max(0, self.content_height - area_height)
+        with self.lock:
+            if self.scroll_offset < max_scroll:
+                self.scroll_offset = min(max_scroll, self.scroll_offset + speed_px)
+
+
+def render_frame(
+    board: WhisPlayBoard,
+    state: DisplayState,
+    width: int,
+    height: int,
+    margin: int,
+    text_color: tuple[int, int, int],
+    scroll_speed: int,
+) -> None:
+    status, lines, scroll_offset, content_height = state.snapshot()
 
     image = Image.new("RGB", (width, height), (0, 0, 0))
     draw = ImageDraw.Draw(image)
-    font = load_font(18)
 
     y = margin
     if status:
-        status_font = load_font(16)
-        draw.text((margin, y), status, font=status_font, fill=(180, 180, 180))
-        status_height = int(status_font.getbbox("Ag")[3] - status_font.getbbox("Ag")[1]) + 6
-        y += status_height
+        bar_height = state.status_height + 10
+        bar_top = margin
+        bar_bottom = bar_top + bar_height
+        draw.rectangle(
+            (margin, bar_top, width - margin, bar_bottom),
+            outline=(60, 60, 60),
+            fill=(0, 0, 0),
+        )
+        label = {
+            "listening": "Listening",
+            "processing": "Processing",
+            "error": "Error",
+        }.get(status.lower(), status.title())
+        draw.text((margin + 6, bar_top + 4), label, font=state.status_font, fill=(180, 180, 180))
+        dot_count = 3
+        dot_radius = 4
+        dot_spacing = 8
+        dots_width = dot_count * (dot_radius * 2) + (dot_count - 1) * dot_spacing
+        start_x = width - margin - dots_width - 6
+        center_y = (bar_top + bar_bottom) // 2
+        active_index = int(time.time() * 2) % dot_count
+        if status.lower() == "listening":
+            active_color = (0, 220, 120)
+        elif status.lower() == "processing":
+            active_color = (255, 200, 60)
+        else:
+            active_color = (220, 80, 80)
+        inactive_color = (70, 70, 70)
+        for i in range(dot_count):
+            cx = start_x + i * (dot_radius * 2 + dot_spacing) + dot_radius
+            color = active_color if i == active_index else inactive_color
+            draw.ellipse(
+                (cx - dot_radius, center_y - dot_radius, cx + dot_radius, center_y + dot_radius),
+                fill=color,
+            )
+        y = bar_bottom + 6
 
-    max_width = width - margin * 2
-    lines = wrap_text(draw, " ".join(text.split()), font, max_width)
-    line_height = int(font.getbbox("Ag")[3] - font.getbbox("Ag")[1]) + 6
+    area_top = y
+    area_height = height - margin - area_top
 
-    for line in lines:
-        if y + line_height > height - margin:
-            break
-        draw.text((margin, y), line, font=font, fill=(255, 255, 255))
-        y += line_height
+    for index, line in enumerate(lines):
+        line_y = area_top + index * state.line_height - scroll_offset
+        if line_y + state.line_height < area_top or line_y > height - margin:
+            continue
+        draw.text((margin, line_y), line, font=state.text_font, fill=text_color)
 
     pixel_data = image_to_rgb565(image)
     board.draw_image(0, 0, width, height, pixel_data)
+
+    if content_height > area_height:
+        state.advance_scroll(area_height, scroll_speed)
 
 
 def parse_payload(raw: str) -> tuple[str | None, str]:
@@ -192,7 +266,7 @@ def safe_cleanup(board: WhisPlayBoard) -> None:
         pass
 
 
-def serve_socket(board: WhisPlayBoard, host: str, port: int) -> None:
+def serve_socket(board: WhisPlayBoard, host: str, port: int, state: DisplayState) -> None:
     server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     server.bind((host, port))
@@ -212,7 +286,7 @@ def serve_socket(board: WhisPlayBoard, host: str, port: int) -> None:
                     status, text = parse_payload(line)
                     if status is None and not text:
                         continue
-                    render_status_text(board, status, text)
+                    state.update(status, text)
 
     try:
         while True:
@@ -230,9 +304,18 @@ def main() -> None:
     port = int(os.getenv("WHISPLAY_PORT", "12345") or 12345)
     hold_ms = int(os.getenv("WHISPLAY_HOLD_MS", "0") or 0)
     brightness = int(os.getenv("WHISPLAY_BRIGHTNESS", "60") or 60)
+    fps = int(os.getenv("WHISPLAY_FPS", "10") or 10)
+    scroll_speed = int(os.getenv("WHISPLAY_SCROLL_SPEED", "2") or 2)
+    margin = 12
 
     board = WhisPlayBoard()
     board.set_backlight(max(0, min(100, brightness)))
+    width = board.LCD_WIDTH
+    height = board.LCD_HEIGHT
+    status_font = load_font(18)
+    text_font = load_font(22)
+    state = DisplayState(text_font, status_font, width - margin * 2)
+    stop_event = threading.Event()
 
     def handle_exit(*_args) -> None:
         raise SystemExit
@@ -240,22 +323,38 @@ def main() -> None:
     signal.signal(signal.SIGTERM, handle_exit)
     signal.signal(signal.SIGINT, handle_exit)
 
+    def render_loop() -> None:
+        while not stop_event.is_set():
+            render_frame(
+                board,
+                state,
+                width,
+                height,
+                margin,
+                (255, 255, 255),
+                max(1, scroll_speed),
+            )
+            time.sleep(1.0 / max(1, fps))
+
+    render_thread = threading.Thread(target=render_loop, daemon=True)
+    render_thread.start()
+
     try:
         if socket_mode:
-            serve_socket(board, host, port)
+            serve_socket(board, host, port, state)
             return
         if listen_mode:
             for line in sys.stdin:
                 status, text = parse_payload(line)
                 if status is None and not text:
                     continue
-                render_status_text(board, status, text)
+                state.update(status, text)
         else:
             status, text = parse_payload(sys.stdin.read())
-            render_status_text(board, status, text)
-            if hold_ms > 0:
-                time.sleep(hold_ms / 1000.0)
+            state.update(status, text)
+            time.sleep(max(0.2, hold_ms / 1000.0))
     finally:
+        stop_event.set()
         safe_cleanup(board)
 
 
