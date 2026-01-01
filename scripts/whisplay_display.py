@@ -1,7 +1,10 @@
 #!/usr/bin/env python3
+import json
 import os
 import signal
+import socket
 import sys
+import threading
 import time
 
 try:
@@ -31,6 +34,33 @@ try:
 
     if hasattr(GPIO, "PWM") and hasattr(GPIO.PWM, "__del__"):
         GPIO.PWM.__del__ = lambda self: None  # type: ignore[method-assign]
+
+    skip_button = os.getenv("WHISPLAY_SKIP_BUTTON", "1").lower() in ("1", "true", "yes")
+    button_pin = getattr(WhisPlayBoard, "BUTTON_PIN", None)
+    if skip_button and button_pin is not None:
+        original_setup = GPIO.setup
+        original_add_event = getattr(GPIO, "add_event_detect", None)
+
+        def setup(channel, *args, **kwargs):
+            if isinstance(channel, (list, tuple)):
+                filtered = [pin for pin in channel if pin != button_pin]
+                if not filtered:
+                    return None
+                return original_setup(filtered, *args, **kwargs)
+            if channel == button_pin:
+                return None
+            return original_setup(channel, *args, **kwargs)
+
+        def add_event_detect(channel, *args, **kwargs):
+            if channel == button_pin:
+                return None
+            if original_add_event:
+                return original_add_event(channel, *args, **kwargs)
+            return None
+
+        GPIO.setup = setup  # type: ignore[assignment]
+        if original_add_event:
+            GPIO.add_event_detect = add_event_detect  # type: ignore[assignment]
 except Exception:
     pass
 
@@ -99,7 +129,7 @@ def image_to_rgb565(img: Image.Image) -> list[int]:
     return data
 
 
-def render_text(board: WhisPlayBoard, text: str) -> None:
+def render_status_text(board: WhisPlayBoard, status: str | None, text: str) -> None:
     if not text:
         text = " "
 
@@ -111,11 +141,17 @@ def render_text(board: WhisPlayBoard, text: str) -> None:
     draw = ImageDraw.Draw(image)
     font = load_font(18)
 
+    y = margin
+    if status:
+        status_font = load_font(16)
+        draw.text((margin, y), status, font=status_font, fill=(180, 180, 180))
+        status_height = int(status_font.getbbox("Ag")[3] - status_font.getbbox("Ag")[1]) + 6
+        y += status_height
+
     max_width = width - margin * 2
     lines = wrap_text(draw, " ".join(text.split()), font, max_width)
     line_height = int(font.getbbox("Ag")[3] - font.getbbox("Ag")[1]) + 6
 
-    y = margin
     for line in lines:
         if y + line_height > height - margin:
             break
@@ -124,6 +160,21 @@ def render_text(board: WhisPlayBoard, text: str) -> None:
 
     pixel_data = image_to_rgb565(image)
     board.draw_image(0, 0, width, height, pixel_data)
+
+
+def parse_payload(raw: str) -> tuple[str | None, str]:
+    stripped = raw.strip()
+    if not stripped:
+        return (None, "")
+    try:
+        payload = json.loads(stripped)
+        if isinstance(payload, dict):
+            status = payload.get("status")
+            text = payload.get("text", "")
+            return (status if isinstance(status, str) else None, str(text))
+    except json.JSONDecodeError:
+        pass
+    return (None, stripped)
 
 
 def safe_cleanup(board: WhisPlayBoard) -> None:
@@ -141,8 +192,42 @@ def safe_cleanup(board: WhisPlayBoard) -> None:
         pass
 
 
+def serve_socket(board: WhisPlayBoard, host: str, port: int) -> None:
+    server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+    server.bind((host, port))
+    server.listen(5)
+    print(f"[Whisplay] Listening on {host}:{port}")
+
+    def handle_client(conn: socket.socket) -> None:
+        buffer = ""
+        with conn:
+            while True:
+                data = conn.recv(4096)
+                if not data:
+                    break
+                buffer += data.decode("utf-8")
+                while "\n" in buffer:
+                    line, buffer = buffer.split("\n", 1)
+                    status, text = parse_payload(line)
+                    if status is None and not text:
+                        continue
+                    render_status_text(board, status, text)
+
+    try:
+        while True:
+            conn, _addr = server.accept()
+            thread = threading.Thread(target=handle_client, args=(conn,), daemon=True)
+            thread.start()
+    finally:
+        server.close()
+
+
 def main() -> None:
     listen_mode = os.getenv("WHISPLAY_LISTEN", "0").lower() in ("1", "true", "yes")
+    socket_mode = os.getenv("WHISPLAY_SOCKET", "0").lower() in ("1", "true", "yes")
+    host = os.getenv("WHISPLAY_HOST", "127.0.0.1")
+    port = int(os.getenv("WHISPLAY_PORT", "12345") or 12345)
     hold_ms = int(os.getenv("WHISPLAY_HOLD_MS", "0") or 0)
     brightness = int(os.getenv("WHISPLAY_BRIGHTNESS", "60") or 60)
 
@@ -156,15 +241,18 @@ def main() -> None:
     signal.signal(signal.SIGINT, handle_exit)
 
     try:
+        if socket_mode:
+            serve_socket(board, host, port)
+            return
         if listen_mode:
             for line in sys.stdin:
-                text = line.strip()
-                if not text:
+                status, text = parse_payload(line)
+                if status is None and not text:
                     continue
-                render_text(board, text)
+                render_status_text(board, status, text)
         else:
-            text = sys.stdin.read().strip()
-            render_text(board, text)
+            status, text = parse_payload(sys.stdin.read())
+            render_status_text(board, status, text)
             if hold_ms > 0:
                 time.sleep(hold_ms / 1000.0)
     finally:

@@ -1,5 +1,6 @@
 import { spawn } from "node:child_process";
 import { existsSync } from "node:fs";
+import net from "node:net";
 import path from "node:path";
 import type { Logger } from "pino";
 import type { AppConfig } from "@aceceed/shared";
@@ -40,11 +41,20 @@ export function startWhisplayDisplay(
   }
 
   let current: ReturnType<typeof spawn> | undefined;
+  let client: net.Socket | undefined;
 
   const spawnDisplay = () => {
     const child = spawn("python3", [scriptPath], {
       stdio: ["pipe", "ignore", "pipe"],
-      env: { ...process.env, PYTHONNOUSERSITE: "1", WHISPLAY_LISTEN: "1" }
+      env: {
+        ...process.env,
+        PYTHONNOUSERSITE: "1",
+        WHISPLAY_SOCKET: "1",
+        WHISPLAY_HOST: "127.0.0.1",
+        WHISPLAY_PORT: "12345",
+        WHISPLAY_SKIP_BUTTON: "1",
+        WHISPLAY_BRIGHTNESS: "60"
+      }
     });
     child.stderr?.on("data", (data) => {
       const output = data.toString().trim();
@@ -60,24 +70,50 @@ export function startWhisplayDisplay(
     return child;
   };
 
-  const render = (text: string) => {
+  const connectClient = () => {
+    if (client && !client.destroyed) {
+      return client;
+    }
+    client = new net.Socket();
+    client.on("error", (err) => {
+      logger.warn({ err }, "Whisplay display socket error");
+      client?.destroy();
+      client = undefined;
+    });
+    client.connect(12345, "127.0.0.1");
+    return client;
+  };
+
+  const render = (status: string | null, text: string) => {
     const sanitized = text.replace(/\s+/g, " ").trim();
-    if (!sanitized) {
+    if (!sanitized && !status) {
       return;
     }
 
-    if (!current || current.killed || current.stdin?.destroyed) {
+    if (!current || current.killed) {
       current = spawnDisplay();
     }
 
-    if (current.stdin?.writable) {
-      current.stdin.write(`${sanitized}\n`);
-    }
+    const socket = connectClient();
+    const payload = JSON.stringify({ status: status ?? undefined, text: sanitized });
+    socket.write(`${payload}\n`);
   };
 
   const handler = (event: AppEvent) => {
+    if (event.type === "ptt:start") {
+      render("Listening...", "");
+      return;
+    }
+    if (event.type === "ptt:stop") {
+      render("Processing...", "");
+      return;
+    }
     if (event.type === "agent:response") {
-      render(event.text);
+      render("Responding...", event.text);
+      return;
+    }
+    if (event.type === "error") {
+      render("Error", event.message);
     }
   };
 
@@ -88,6 +124,10 @@ export function startWhisplayDisplay(
     bus.off("event", handler);
     if (current && !current.killed) {
       current.kill("SIGTERM");
+    }
+    if (client && !client.destroyed) {
+      client.destroy();
+      client = undefined;
     }
   };
 }

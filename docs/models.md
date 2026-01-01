@@ -13,6 +13,8 @@
 - Configure in `configs/*.yaml` `llm.local.modelPath`
 - Start llama-server with:
   - `/usr/local/bin/llama-server -m /opt/models/llama/llama-3.gguf -c 2048`
+- Optional (systemd) example:
+  - `sudo /usr/local/bin/llama-server -m /opt/models/llama/llama-3.gguf -c 2048 --host 127.0.0.1 --port 8080`
 
 ## LLM-8850 Qwen3 (LLM)
 - The LLM-8850 runtime is a separate service that hosts the Qwen3 model locally.
@@ -21,6 +23,8 @@
   - `systemctl list-units --type=service | grep -i 'llm\\|qwen\\|8850'`
   - `sudo systemctl enable --now <service-name>`
   - `sudo systemctl status <service-name>`
+- Quick API check:
+  - `curl -s http://127.0.0.1:8000/api/generate_provider`
 - Configure in `configs/*.yaml`:
   - `llm.local.backend: "llm8850"`
   - `llm.local.llm8850.host: "http://127.0.0.1:8000"`
