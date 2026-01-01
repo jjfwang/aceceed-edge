@@ -44,6 +44,17 @@ function stripLanguagePrefix(response: string): string {
   return trimmed;
 }
 
+function buildSystemPrompt(base: string, language: string | null): string {
+  if (!language) {
+    return base;
+  }
+  return [
+    base,
+    `Respond only in ${language}. Do not translate or switch languages.`,
+    "Do not add prefatory labels like 'Answer:' or language names."
+  ].join("\n");
+}
+
 export class TutorAgent implements Agent {
   id = "tutor";
   name = "Tutor";
@@ -60,13 +71,10 @@ export class TutorAgent implements Agent {
     }
 
     const languageHint = detectResponseLanguage(input.transcript);
-    const languageDirective = languageHint
-      ? `Respond only in ${languageHint.label}. Do not translate or switch languages.`
-      : null;
+    const finalPrompt = buildSystemPrompt(this.systemPrompt, languageHint?.label ?? null);
 
     const messages = [
-      { role: "system", content: this.systemPrompt },
-      ...(languageDirective ? [{ role: "system", content: languageDirective }] : []),
+      { role: "system", content: finalPrompt },
       { role: "user", content: input.transcript }
     ];
 
