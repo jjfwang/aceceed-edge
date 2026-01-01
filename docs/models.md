@@ -7,6 +7,10 @@
 ## Piper (TTS)
 - Voice models under `/opt/models/piper/`
 - Configure in `configs/*.yaml` `tts.piper.voicePath`
+- For Chinese output, download a Chinese voice and set `tts.piper.voicePathZh` (and optional `outputSampleRateZh`).
+- `scripts/setup_models.sh` supports optional Chinese voice downloads via:
+  - `PIPER_ZH_URL=...`
+  - `PIPER_ZH_CONFIG_URL=...`
 
 ## Llama.cpp (LLM)
 - GGUF models under `/opt/models/llama/`

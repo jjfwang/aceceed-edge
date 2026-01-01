@@ -66,7 +66,19 @@ except Exception:
 
 
 def load_font(size: int) -> ImageFont.FreeTypeFont:
+    custom = os.getenv("WHISPLAY_FONT_PATH")
+    if custom and os.path.exists(custom):
+        try:
+            return ImageFont.truetype(custom, size=size)
+        except Exception:
+            pass
     candidates = [
+        "/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc",
+        "/usr/share/fonts/opentype/noto/NotoSansCJK-Bold.ttc",
+        "/usr/share/fonts/truetype/noto/NotoSansCJK-Regular.ttc",
+        "/usr/share/fonts/truetype/noto/NotoSansCJK-Bold.ttc",
+        "/usr/share/fonts/opentype/noto/NotoSansSC-Regular.otf",
+        "/usr/share/fonts/opentype/noto/NotoSansSC-Bold.otf",
         "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",
         "/usr/share/fonts/truetype/freefont/FreeSans.ttf",
     ]

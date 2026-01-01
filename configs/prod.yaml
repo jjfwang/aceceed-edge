@@ -49,6 +49,9 @@ tts:
     binPath: "/usr/bin/piper"
     voicePath: "/opt/models/piper/en_US-amy-medium.onnx"
     outputSampleRate: 22050
+    # Optional Chinese voice (download separately).
+    # voicePathZh: "/opt/models/piper/zh_CN-huayan-medium.onnx"
+    # outputSampleRateZh: 22050
 
 vision:
   enabled: true

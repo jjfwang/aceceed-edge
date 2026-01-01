@@ -8,15 +8,27 @@ export class PiperTts implements TtsProvider {
   constructor(private config: TtsConfig, private logger: Logger) {}
 
   async synthesize(text: string): Promise<string> {
+    const useChinese = /[\u4E00-\u9FFF]/.test(text);
+    const voicePath =
+      useChinese && this.config.piper.voicePathZh
+        ? this.config.piper.voicePathZh
+        : this.config.piper.voicePath;
+    const outputSampleRate =
+      useChinese && this.config.piper.outputSampleRateZh
+        ? this.config.piper.outputSampleRateZh
+        : this.config.piper.outputSampleRate;
+    if (useChinese && !this.config.piper.voicePathZh) {
+      this.logger.warn("Chinese text detected but no Chinese Piper voice configured.");
+    }
     const outputPath = tempPath("piper", ".wav");
 
     const args = [
       "--model",
-      this.config.piper.voicePath,
+      voicePath,
       "--output_file",
       outputPath,
       "--output_sample_rate",
-      String(this.config.piper.outputSampleRate)
+      String(outputSampleRate)
     ];
 
     try {
@@ -32,9 +44,9 @@ export class PiperTts implements TtsProvider {
       throw new Error("Piper produced an invalid WAV file");
     }
     const sampleRate = wavBuffer.readUInt32LE(24);
-    if (sampleRate !== this.config.piper.outputSampleRate) {
+    if (sampleRate !== outputSampleRate) {
       throw new Error(
-        `Piper output sample rate ${sampleRate}Hz does not match configured ${this.config.piper.outputSampleRate}Hz.`
+        `Piper output sample rate ${sampleRate}Hz does not match configured ${outputSampleRate}Hz.`
       );
     }
 

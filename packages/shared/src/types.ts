@@ -75,6 +75,8 @@ export interface TtsConfig {
     binPath: string;
     voicePath: string;
     outputSampleRate: number;
+    voicePathZh?: string;
+    outputSampleRateZh?: number;
   };
   cloud?: TtsCloudConfig;
 }

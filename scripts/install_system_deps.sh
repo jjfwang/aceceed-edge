@@ -7,6 +7,7 @@ sudo apt-get install -y \
   libopenblas-dev libssl-dev libasound2-dev libgpiod-dev gpiod libcurl4-openssl-dev \
   espeak-ng espeak-ng-data \
   python3-pil python3-rpi-lgpio python3-spidev \
+  fonts-noto-cjk \
   sox curl wget
 
 if ! command -v node >/dev/null 2>&1; then

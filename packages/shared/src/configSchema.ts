@@ -56,7 +56,9 @@ export const configSchema = z.object({
     piper: z.object({
       binPath: z.string().min(1),
       voicePath: z.string().min(1),
-      outputSampleRate: z.number().int().positive()
+      outputSampleRate: z.number().int().positive(),
+      voicePathZh: z.string().min(1).optional(),
+      outputSampleRateZh: z.number().int().positive().optional()
     }),
     cloud: z
       .object({
