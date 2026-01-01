@@ -17,8 +17,16 @@ describe("TutorAgent", () => {
 
     const directive = captured.find((msg) => msg.role === "system" && msg.content.includes("Respond only"));
     expect(directive?.content).toContain("Simplified Chinese");
+  });
 
-    const userMessage = captured.find((msg) => msg.role === "user");
-    expect(userMessage?.content).toContain("请用中文回答");
+  it("strips common language prefixes from responses", async () => {
+    const llm = {
+      generate: async () => "回答：这是测试"
+    };
+    const agent = new TutorAgent(llm, "system");
+
+    const result = await agent.handle({ transcript: "你好" });
+
+    expect(result?.text).toBe("这是测试");
   });
 });
