@@ -58,7 +58,15 @@ export const configSchema = z.object({
       voicePath: z.string().min(1),
       outputSampleRate: z.number().int().positive(),
       voicePathZh: z.string().min(1).optional(),
-      outputSampleRateZh: z.number().int().positive().optional()
+      outputSampleRateZh: z.number().int().positive().optional(),
+      voiceByLang: z
+        .record(
+          z.object({
+            voicePath: z.string().min(1),
+            outputSampleRate: z.number().int().positive().optional()
+          })
+        )
+        .optional()
     }),
     cloud: z
       .object({

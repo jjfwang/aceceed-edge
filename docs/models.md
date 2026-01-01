@@ -3,6 +3,7 @@
 ## Whisper.cpp (STT)
 - Model files under `/opt/models/whisper/`
 - Configure in `configs/*.yaml` `stt.whispercpp.modelPath`
+- Set `stt.whispercpp.language: "auto"` to enable multilingual transcription (requires non-`.en` models).
 
 ## Piper (TTS)
 - Voice models under `/opt/models/piper/`
@@ -11,6 +12,7 @@
 - `scripts/setup_models.sh` supports optional Chinese voice downloads via:
   - `PIPER_ZH_URL=...`
   - `PIPER_ZH_CONFIG_URL=...`
+- For multiple languages, configure `tts.piper.voiceByLang` with language keys like `en`, `zh`, `ja`, `ko`.
 
 ## Llama.cpp (LLM)
 - GGUF models under `/opt/models/llama/`

@@ -77,6 +77,13 @@ export interface TtsConfig {
     outputSampleRate: number;
     voicePathZh?: string;
     outputSampleRateZh?: number;
+    voiceByLang?: Record<
+      string,
+      {
+        voicePath: string;
+        outputSampleRate?: number;
+      }
+    >;
   };
   cloud?: TtsCloudConfig;
 }

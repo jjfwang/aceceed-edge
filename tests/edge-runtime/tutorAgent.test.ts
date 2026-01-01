@@ -17,5 +17,8 @@ describe("TutorAgent", () => {
 
     const directive = captured.find((msg) => msg.role === "system" && msg.content.includes("Respond only"));
     expect(directive?.content).toContain("Simplified Chinese");
+
+    const userMessage = captured.find((msg) => msg.role === "user");
+    expect(userMessage?.content).toContain("请用中文回答");
   });
 });
