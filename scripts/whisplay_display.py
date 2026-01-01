@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 import os
+import signal
 import sys
+import time
 
 try:
     from PIL import Image, ImageDraw, ImageFont
@@ -89,13 +91,9 @@ def image_to_rgb565(img: Image.Image) -> list[int]:
     return data
 
 
-def main() -> None:
-    text = sys.stdin.read().strip()
+def render_text(board: WhisPlayBoard, text: str) -> None:
     if not text:
         text = " "
-
-    board = WhisPlayBoard()
-    board.set_backlight(60)
 
     width = board.LCD_WIDTH
     height = board.LCD_HEIGHT
@@ -118,7 +116,51 @@ def main() -> None:
 
     pixel_data = image_to_rgb565(image)
     board.draw_image(0, 0, width, height, pixel_data)
-    board.cleanup()
+
+
+def safe_cleanup(board: WhisPlayBoard) -> None:
+    for attr in ("backlight_pwm", "red_pwm", "green_pwm", "blue_pwm"):
+        pwm = getattr(board, attr, None)
+        if pwm is not None:
+            try:
+                pwm.stop()
+            except Exception:
+                pass
+            setattr(board, attr, None)
+    try:
+        board.spi.close()
+    except Exception:
+        pass
+
+
+def main() -> None:
+    listen_mode = os.getenv("WHISPLAY_LISTEN", "0").lower() in ("1", "true", "yes")
+    hold_ms = int(os.getenv("WHISPLAY_HOLD_MS", "0") or 0)
+    brightness = int(os.getenv("WHISPLAY_BRIGHTNESS", "60") or 60)
+
+    board = WhisPlayBoard()
+    board.set_backlight(max(0, min(100, brightness)))
+
+    def handle_exit(*_args) -> None:
+        raise SystemExit
+
+    signal.signal(signal.SIGTERM, handle_exit)
+    signal.signal(signal.SIGINT, handle_exit)
+
+    try:
+        if listen_mode:
+            for line in sys.stdin:
+                text = line.strip()
+                if not text:
+                    continue
+                render_text(board, text)
+        else:
+            text = sys.stdin.read().strip()
+            render_text(board, text)
+            if hold_ms > 0:
+                time.sleep(hold_ms / 1000.0)
+    finally:
+        safe_cleanup(board)
 
 
 if __name__ == "__main__":

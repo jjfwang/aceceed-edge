@@ -41,28 +41,38 @@ export function startWhisplayDisplay(
 
   let current: ReturnType<typeof spawn> | undefined;
 
-  const render = (text: string) => {
-    if (!text.trim()) {
-      return;
-    }
-
-    if (current && !current.killed) {
-      current.kill("SIGTERM");
-    }
-
+  const spawnDisplay = () => {
     const child = spawn("python3", [scriptPath], {
       stdio: ["pipe", "ignore", "pipe"],
-      env: { ...process.env, PYTHONNOUSERSITE: "1" }
+      env: { ...process.env, PYTHONNOUSERSITE: "1", WHISPLAY_LISTEN: "1" }
     });
-    child.stdin?.write(text);
-    child.stdin?.end();
     child.stderr?.on("data", (data) => {
       const output = data.toString().trim();
       if (output) {
         logger.warn({ output }, "Whisplay display error");
       }
     });
-    current = child;
+    child.on("exit", () => {
+      if (current === child) {
+        current = undefined;
+      }
+    });
+    return child;
+  };
+
+  const render = (text: string) => {
+    const sanitized = text.replace(/\s+/g, " ").trim();
+    if (!sanitized) {
+      return;
+    }
+
+    if (!current || current.killed || current.stdin?.destroyed) {
+      current = spawnDisplay();
+    }
+
+    if (current.stdin?.writable) {
+      current.stdin.write(`${sanitized}\n`);
+    }
   };
 
   const handler = (event: AppEvent) => {
