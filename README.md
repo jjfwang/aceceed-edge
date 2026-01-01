@@ -16,6 +16,10 @@ Offline-first "desk tutor" stack for Raspberry Pi 5 (8GB). Camera + audio, local
    ```bash
    bash scripts/setup_models.sh
    ```
+   Optional (Chinese TTS voice):
+   ```bash
+   PIPER_ZH_URL=... PIPER_ZH_CONFIG_URL=... bash scripts/setup_models.sh
+   ```
 3) Install JS dependencies (workspace):
    ```bash
    pnpm install
@@ -53,6 +57,9 @@ sudo bash run_test.sh
 - Local llama.cpp: set `llm.mode: local` and `llm.local.backend: "llama.cpp"`, then run `llama-server`.
 - LLM-8850 Qwen3: run the vendor LLM-8850 service, then set `llm.mode: local`, `llm.local.backend: "llm8850"`, and configure `llm.local.llm8850.host`.
 - Cloud: set `llm.mode: cloud` and `OPENAI_API_KEY` (or custom env key).
+
+## Multilingual Notes
+- For Chinese TTS, set `tts.piper.voicePathZh` in `configs/*.yaml` and install `fonts-noto-cjk` for the LCD.
 
 ## Docs
 See `context.md` and `docs/architecture.md` for the full system overview.
