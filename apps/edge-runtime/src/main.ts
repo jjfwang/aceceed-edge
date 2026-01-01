@@ -63,8 +63,9 @@ const llm =
 
 const promptUrl = new URL("./llm/prompts/systemPrompt.txt", import.meta.url);
 const systemPrompt = await readTextFile(fileURLToPath(promptUrl));
+logger.info({ systemPrompt }, "Loaded system prompt");
 
-const tutorAgent = new TutorAgent(llm, systemPrompt);
+const tutorAgent = new TutorAgent(llm, systemPrompt, logger);
 const coachAgent = new CoachAgent();
 const enabledAgents = config.runtime.agents?.enabled ?? ["tutor"];
 const registry = new AgentRegistry([tutorAgent, coachAgent], enabledAgents);

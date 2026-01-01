@@ -1,3 +1,4 @@
+import type { Logger } from "pino";
 import type { Agent, AgentInput, AgentOutput } from "./base.js";
 import type { LlmClient } from "../llm/base.js";
 
@@ -47,7 +48,11 @@ export class TutorAgent implements Agent {
   id = "tutor";
   name = "Tutor";
 
-  constructor(private llm: LlmClient, private systemPrompt: string) {}
+  constructor(
+    private llm: LlmClient,
+    private systemPrompt: string,
+    private logger?: Logger
+  ) {}
 
   async handle(input: AgentInput): Promise<AgentOutput | null> {
     if (!input.transcript.trim()) {
@@ -59,11 +64,21 @@ export class TutorAgent implements Agent {
       ? `Respond only in ${languageHint.label}. Do not translate or switch languages.`
       : null;
 
-    const response = await this.llm.generate([
+    const messages = [
       { role: "system", content: this.systemPrompt },
       ...(languageDirective ? [{ role: "system", content: languageDirective }] : []),
       { role: "user", content: input.transcript }
-    ]);
+    ];
+
+    if (this.logger) {
+      this.logger.info({ messages }, "LLM request");
+    }
+
+    const response = await this.llm.generate(messages);
+
+    if (this.logger) {
+      this.logger.info({ response }, "LLM response");
+    }
 
     return { text: stripLanguagePrefix(response) };
   }
