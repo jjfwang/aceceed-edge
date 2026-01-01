@@ -29,4 +29,22 @@ describe("TutorAgent", () => {
 
     expect(result?.text).toBe("这是测试");
   });
+
+  it("retries with translation when response language mismatches", async () => {
+    const responses = ["This is English.", "这是中文。"];
+    let calls = 0;
+    const llm = {
+      generate: async () => {
+        const reply = responses[calls] ?? "这是中文。";
+        calls += 1;
+        return reply;
+      }
+    };
+    const agent = new TutorAgent(llm, "system");
+
+    const result = await agent.handle({ transcript: "你好" });
+
+    expect(calls).toBe(2);
+    expect(result?.text).toBe("这是中文。");
+  });
 });

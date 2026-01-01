@@ -55,6 +55,29 @@ function buildSystemPrompt(base: string, language: string | null): string {
   ].join("\n");
 }
 
+function responseMatchesLanguage(response: string, language: string): boolean {
+  if (language === "Simplified Chinese") {
+    return /[\u4E00-\u9FFF]/.test(response);
+  }
+  if (language === "Japanese") {
+    return /[\u3040-\u30FF]/.test(response);
+  }
+  if (language === "Korean") {
+    return /[\uAC00-\uD7AF]/.test(response);
+  }
+  return true;
+}
+
+function buildTranslationMessages(text: string, language: string) {
+  return [
+    {
+      role: "system" as const,
+      content: `Translate the text into ${language}. Output only the translation.`
+    },
+    { role: "user" as const, content: text }
+  ];
+}
+
 export class TutorAgent implements Agent {
   id = "tutor";
   name = "Tutor";
@@ -88,6 +111,22 @@ export class TutorAgent implements Agent {
       this.logger.info({ response }, "LLM response");
     }
 
-    return { text: stripLanguagePrefix(response) };
+    let finalResponse = response;
+    if (languageHint && !responseMatchesLanguage(response, languageHint.label)) {
+      if (this.logger) {
+        this.logger.info(
+          { target: languageHint.label },
+          "LLM response language mismatch, retrying with translation"
+        );
+      }
+      const translated = await this.llm.generate(
+        buildTranslationMessages(response, languageHint.label)
+      );
+      if (responseMatchesLanguage(translated, languageHint.label)) {
+        finalResponse = translated;
+      }
+    }
+
+    return { text: stripLanguagePrefix(finalResponse) };
   }
 }
