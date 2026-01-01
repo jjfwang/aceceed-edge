@@ -15,6 +15,10 @@ QWEN3_URL="${QWEN3_URL:-${LLAMA_URL:-https://huggingface.co/Qwen/Qwen3-1.7B-GGUF
 download() {
   local url="$1"
   local dest="$2"
+  if [[ -f "$dest" ]]; then
+    echo "  Skipping (exists): $dest"
+    return
+  fi
   local dest_dir
   dest_dir="$(dirname "$dest")"
   local use_sudo=""
