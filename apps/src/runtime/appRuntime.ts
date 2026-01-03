@@ -329,6 +329,15 @@ export class AppRuntime {
           ? Boolean(this.config.llm.local.llm8850?.host)
           : true;
 
+    const sttBackend =
+      this.config.stt.mode === "cloud"
+        ? `cloud:${this.config.stt.cloud?.provider ?? "unknown"}`
+        : `local:${this.config.stt.backend}`;
+    const ttsBackend =
+      this.config.tts.mode === "cloud"
+        ? `cloud:${this.config.tts.cloud?.provider ?? "unknown"}`
+        : `local:${this.config.tts.backend}`;
+
     const services: RuntimeServiceStatus[] = [
       {
         id: "llm",
@@ -343,7 +352,7 @@ export class AppRuntime {
       },
       {
         id: "stt",
-        backend: `${this.config.stt.mode}:${this.config.stt.backend}`,
+        backend: sttBackend,
         ready:
           this.config.stt.mode === "cloud"
             ? Boolean(this.config.stt.cloud?.apiKeyEnv && process.env[this.config.stt.cloud.apiKeyEnv])
@@ -364,7 +373,7 @@ export class AppRuntime {
       },
       {
         id: "tts",
-        backend: `${this.config.tts.mode}:${this.config.tts.backend}`,
+        backend: ttsBackend,
         ready:
           this.config.tts.mode === "cloud"
             ? Boolean(this.config.tts.cloud?.apiKeyEnv && process.env[this.config.tts.cloud.apiKeyEnv])

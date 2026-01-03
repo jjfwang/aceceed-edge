@@ -5,9 +5,9 @@
   "type": "module",
   "main": "./dist/main.js",
   "scripts": {
-    "dev": "pnpm -C ../packages/shared build && ACECEED_CONFIG=../configs/dev.yaml NODE_ENV=development tsx src/main.ts",
+    "dev": "pnpm -C ../packages/shared build && ACECEED_CONFIG=../configs/config.yaml NODE_ENV=development tsx src/main.ts",
     "build": "pnpm -C ../packages/shared build && tsup src/main.ts --format esm --sourcemap",
-    "start": "ACECEED_CONFIG=../configs/prod.yaml node dist/main.js",
+    "start": "ACECEED_CONFIG=../configs/config.yaml node dist/main.js",
     "lint": "eslint src --ext .ts",
     "test": "vitest run --root .. --config vitest.config.ts ../tests",
     "test:cov": "vitest run --coverage --root .. --config vitest.config.ts ../tests",

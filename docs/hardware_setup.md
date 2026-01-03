@@ -12,7 +12,7 @@
 
 ## Audio
 - List devices: `arecord -l` and `aplay -l`.
-- Update `configs/*.yaml` `audio.input.device` and `audio.output.device`.
+- Update `configs/config.yaml` `audio.input.device` and `audio.output.device`.
 
 ## Whisplay HAT (WM8960)
 - Install the Whisplay driver: `bash scripts/install_whisplay.sh` (reboot required).
@@ -24,7 +24,7 @@
 - If you see `Cannot determine SOC peripheral base address` on Pi 5, install `python3-rpi-lgpio` and remove any `RPi.GPIO` from pip.
 
 ## Whisplay Button PTT
-- Set `runtime.pushToTalkMode` to `whisplay` in `configs/*.yaml`.
+- Set `runtime.pushToTalkMode` to `whisplay` in `configs/config.yaml`.
 - Optional: `runtime.whisplay.mode` (`hold` or `toggle`) and `runtime.whisplay.buttonPin` (BOARD numbering).
 - The runtime listens directly to GPIO (via `gpiomon` if available, otherwise `onoff`).
 - On Raspberry Pi OS, you may need to run the runtime as root or grant GPIO access for the service user.

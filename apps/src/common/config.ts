@@ -5,8 +5,8 @@ import { configSchema } from "@aceceed/shared";
 import type { AppConfig } from "@aceceed/shared";
 
 const defaultConfigCandidates = [
-  path.resolve(process.cwd(), "configs/default.yaml"),
-  path.resolve(process.cwd(), "../configs/default.yaml")
+  path.resolve(process.cwd(), "configs/config.yaml"),
+  path.resolve(process.cwd(), "../configs/config.yaml")
 ];
 
 async function resolveConfigPath(): Promise<string> {
@@ -24,7 +24,7 @@ async function resolveConfigPath(): Promise<string> {
     }
   }
 
-  throw new Error("Config file not found. Set ACECEED_CONFIG or run from repo root.");
+  throw new Error("Config file not found. Set ACECEED_CONFIG or add configs/config.yaml.");
 }
 
 function applyEnvOverrides(config: AppConfig): AppConfig {

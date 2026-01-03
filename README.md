@@ -64,6 +64,7 @@ sudo ./deploy/scripts/install_systemd.sh
 - `pnpm test` run tests
 
 ## Configuration highlights
+- Config file: `configs/config.yaml` (override path with `ACECEED_CONFIG`).
 - `rag.*`: enable/disable MOE syllabus + past-paper RAG, pick grade band (`primary|secondary|jc`), subjects, sourceTypes (e.g., `syllabus`, `past-paper`), and index path (default sample: `docs/rag/moe_samples.json`).
 - `runtime.vision.triggerKeywords`: keywords that trigger worksheet capture + OCR; set `runtime.vision.alwaysCapture` to force capture every turn.
 - `vision.ocr`: enable/disable OCR and set `serviceUrl` (HTTP that accepts JPEG bytes) or `mockText` for offline development.

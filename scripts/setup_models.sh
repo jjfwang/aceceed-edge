@@ -57,4 +57,4 @@ if [[ -n "${PIPER_ZH_CONFIG_URL}" ]]; then
   echo "  /opt/models/piper/zh_CN-huayan-medium.onnx.json"
 fi
 echo "  /opt/models/llama/qwen3-1.7b-q8_0.gguf (Qwen3 1.7B)"
-echo "Update configs/*.yaml paths if you use different filenames."
+echo "Update configs/config.yaml paths if you use different filenames."

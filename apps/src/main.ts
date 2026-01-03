@@ -5,7 +5,9 @@ import { createLogger } from "./common/logging.js";
 import { EventBus } from "./runtime/eventBus.js";
 import { AudioInput } from "./audio/input.js";
 import { AudioOutput } from "./audio/output.js";
+import { OpenAiWhisperStt } from "./audio/stt/openaiWhisper.js";
 import { WhisperCppStt } from "./audio/stt/whisperCpp.js";
+import { OpenAiTts } from "./audio/tts/openaiTts.js";
 import { PiperTts } from "./audio/tts/piper.js";
 import { LocalLlamaCppClient } from "./llm/localLlamaCpp.js";
 import { OpenAiClient } from "./llm/openaiApi.js";
@@ -52,8 +54,14 @@ const logger = createLogger(config.logging);
 const bus = new EventBus();
 const audioInput = new AudioInput(config.audio, logger);
 const audioOutput = new AudioOutput(config.audio, logger);
-const stt = new WhisperCppStt(config.stt, logger);
-const tts = new PiperTts(config.tts, logger);
+const stt =
+  config.stt.mode === "cloud"
+    ? new OpenAiWhisperStt(config.stt, logger)
+    : new WhisperCppStt(config.stt, logger);
+const tts =
+  config.tts.mode === "cloud"
+    ? new OpenAiTts(config.tts, logger)
+    : new PiperTts(config.tts, logger);
 
 const localBackend = config.llm.local.backend ?? "llama.cpp";
 const llm =

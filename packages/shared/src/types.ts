@@ -65,6 +65,7 @@ export interface TtsCloudConfig {
   provider: string;
   apiKeyEnv: string;
   baseUrl?: string;
+  model?: string;
   voiceId?: string;
 }
 

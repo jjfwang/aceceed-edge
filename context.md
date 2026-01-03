@@ -37,7 +37,7 @@ Aceceed Edge is an offline-first desk tutor for Raspberry Pi 5. It provides came
 - `apps`: main runtime (Fastify, orchestration, agents, backends)
 - `apps/src/rag`: lightweight local retriever for MOE syllabus snippets
 - `packages/shared`: shared TS types + config schema
-- `configs/`: YAML configs and systemd service
+- `configs/`: config.yaml and systemd service
 - `scripts/`: install/setup/run helpers
 - `docs/`: architecture, hardware, safety, models, references
 - `tests/`: vitest suites
@@ -65,7 +65,7 @@ Aceceed Edge is an offline-first desk tutor for Raspberry Pi 5. It provides came
 - Update config schema/types in `packages/shared` and wire in `main.ts`.
 
 ## Config Conventions and Env Rules
-- YAML configs in `configs/` are the source of truth.
+- `configs/config.yaml` is the source of truth.
 - Enable agents with `runtime.agents.enabled` (e.g., `["tutor"]`).
 - Env overrides:
   - `ACECEED_CONFIG` (config file path)

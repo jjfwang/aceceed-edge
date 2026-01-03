@@ -82,6 +82,7 @@ export const configSchema = z.object({
         provider: z.string().min(1),
         apiKeyEnv: z.string().min(1),
         baseUrl: z.string().url().optional(),
+        model: z.string().min(1).optional(),
         voiceId: z.string().min(1).optional()
       })
       .optional()
