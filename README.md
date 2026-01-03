@@ -3,7 +3,7 @@
 Offline-first assistant for Raspberry Pi 5 (8GB) with PTT-only interaction, local STT/LLM on AX8850, vision on Hailo-8L, Pi Camera input, and Piper TTS. It now aligns tutor responses to the Singapore MOE syllabus (Primary/Secondary/JC) and past papers via a local RAG index and can fold OCR from worksheets into prompts. The repository runs in mock mode without hardware SDKs and is structured for drop-in device integrations. During early bring-up you can point cloud mode at GPT-4o; the default goal is to flip to local accelerators (LLM-8850 + Hailo) once configured.
 
 ## Architecture
-- TypeScript Node.js orchestrator (`apps/edge-runtime`) with RAG + OCR prompt grounding
+- TypeScript Node.js orchestrator (`apps`) with RAG + OCR prompt grounding
 - Python gRPC services for AX8850, Hailo vision, camera, and TTS (consolidated into `engine.py` files)
 - gRPC IPC with `proto/assistant.proto`
 - systemd unit files + install scripts

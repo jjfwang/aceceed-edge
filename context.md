@@ -7,7 +7,7 @@ Aceceed Edge is an offline-first desk tutor for Raspberry Pi 5. It provides came
 ```
 +-------------------------------+        +-------------------------+
 |         Device Runtime        |        |   Local/Cloud LLMs       |
-|  (apps/edge-runtime)          |        |                         |
+|  (apps)          |        |                         |
 |                               |        |  - llama.cpp (local)    |
 |  +-------------------------+  |        |  - OpenAI-compatible    |
 |  | Perception              |  |        +-------------------------+
@@ -34,8 +34,8 @@ Aceceed Edge is an offline-first desk tutor for Raspberry Pi 5. It provides came
 ```
 
 ## Repo Map
-- `apps/edge-runtime`: main runtime (Fastify, orchestration, agents, backends)
-- `apps/edge-runtime/src/rag`: lightweight local retriever for MOE syllabus snippets
+- `apps`: main runtime (Fastify, orchestration, agents, backends)
+- `apps/src/rag`: lightweight local retriever for MOE syllabus snippets
 - `packages/shared`: shared TS types + config schema
 - `configs/`: YAML configs and systemd service
 - `scripts/`: install/setup/run helpers
@@ -43,8 +43,8 @@ Aceceed Edge is an offline-first desk tutor for Raspberry Pi 5. It provides came
 - `tests/`: vitest suites
 
 ## Run (Dev/Prod)
-- Dev (keyboard PTT): `pnpm -C apps/edge-runtime dev` (cloud mode defaults to GPT-4o; switch to local once accelerators are set)
-- Prod: `pnpm -C apps/edge-runtime build` then `pnpm -C apps/edge-runtime start`
+- Dev (keyboard PTT): `pnpm -C apps dev` (cloud mode defaults to GPT-4o; switch to local once accelerators are set)
+- Prod: `pnpm -C apps build` then `pnpm -C apps start`
 - Systemd: copy `configs/systemd/aceceed-edge.service` to `/etc/systemd/system/`
 - Local LLM: start llama-server or LLM-8850 service separately (see `docs/models.md`)
 
@@ -54,14 +54,14 @@ Aceceed Edge is an offline-first desk tutor for Raspberry Pi 5. It provides came
 - `runtime.vision.triggerKeywords` controls when captures occur; `vision.ocr` can point to a service URL or return `mockText` in dev.
 
 ## Add a New Agent
-1. Create a new agent in `apps/edge-runtime/src/agents/` implementing `Agent`.
-2. Register it in `apps/edge-runtime/src/main.ts` and enable via `runtime.agents.enabled` in config.
+1. Create a new agent in `apps/src/agents/` implementing `Agent`.
+2. Register it in `apps/src/main.ts` and enable via `runtime.agents.enabled` in config.
 3. Keep responses short and pass through the safety guard if needed.
 
 ## Add a New Backend
-- LLM: implement `LlmClient` in `apps/edge-runtime/src/llm/`.
-- STT/TTS: implement `SttProvider` or `TtsProvider` in `apps/edge-runtime/src/audio/`.
-- Vision detector: implement `VisionDetector` in `apps/edge-runtime/src/vision/detectors/`.
+- LLM: implement `LlmClient` in `apps/src/llm/`.
+- STT/TTS: implement `SttProvider` or `TtsProvider` in `apps/src/audio/`.
+- Vision detector: implement `VisionDetector` in `apps/src/vision/detectors/`.
 - Update config schema/types in `packages/shared` and wire in `main.ts`.
 
 ## Config Conventions and Env Rules

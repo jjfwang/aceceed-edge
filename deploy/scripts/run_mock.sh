@@ -14,4 +14,4 @@ python3 "$ROOT_DIR/services-py/tts_service/server.py" & pids+=($!)
 
 trap 'kill ${pids[*]} 2>/dev/null || true' EXIT
 
-pnpm -C "$ROOT_DIR/apps/edge-runtime" run dev
+pnpm -C "$ROOT_DIR/apps" run dev

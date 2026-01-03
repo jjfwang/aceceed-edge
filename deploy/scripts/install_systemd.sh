@@ -17,8 +17,8 @@ fi
 
 sudo python3 -m pip install -r "$TARGET_DIR/services-py/requirements.txt"
 
-sudo pnpm -C "$TARGET_DIR/apps/edge-runtime" install
-sudo pnpm -C "$TARGET_DIR/apps/edge-runtime" run build
+sudo pnpm -C "$TARGET_DIR/apps" install
+sudo pnpm -C "$TARGET_DIR/apps" run build
 
 sudo cp "$TARGET_DIR/deploy/systemd/"*.service /etc/systemd/system/
 
