@@ -45,6 +45,8 @@ export function startWhisplayDisplay(
   let connecting = false;
   let reconnectTimer: NodeJS.Timeout | undefined;
   const pending: string[] = [];
+  let retryCount = 0;
+  const maxRetries = 10;
 
   const spawnDisplay = () => {
     const child = spawn("python3", [scriptPath], {
@@ -84,6 +86,10 @@ export function startWhisplayDisplay(
     if (reconnectTimer) {
       return;
     }
+    if (retryCount >= maxRetries) {
+      logger.error(`Whisplay display failed to connect after ${maxRetries} retries. Giving up.`);
+      return;
+    }
     reconnectTimer = setTimeout(() => {
       reconnectTimer = undefined;
       connectClient();
@@ -110,14 +116,17 @@ export function startWhisplayDisplay(
       return;
     }
     connecting = true;
+    retryCount++;
     const socket = new net.Socket();
     socket.on("connect", () => {
       connecting = false;
       client = socket;
+      retryCount = 0; // Reset on successful connection
+      logger.info("Whisplay display socket connected.");
       flushQueue();
     });
     socket.on("error", (err) => {
-      logger.warn({ err }, "Whisplay display socket error");
+      logger.warn({ err, attempt: retryCount }, "Whisplay display socket error");
       socket.destroy();
       if (client === socket) {
         client = undefined;
@@ -130,7 +139,9 @@ export function startWhisplayDisplay(
         client = undefined;
       }
       connecting = false;
-      scheduleReconnect();
+      if (retryCount < maxRetries) {
+        scheduleReconnect();
+      }
     });
     socket.connect(12345, "127.0.0.1");
   };
