@@ -1,8 +1,7 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { startWhisplayPtt } from "../apps/src/runtime/whisplayPtt.js";
-import { EventBus } from "../apps/src/runtime/eventBus.js";
+import { describe, it, expect, vi, beforeEach, afterEach, beforeAll } from "vitest";
 import type { AppConfig } from "@aceceed/shared";
-import { ChildProcess, spawn, spawnSync } from "node:child_process";
+import type { EventBus as EventBusType } from "../apps/src/runtime/eventBus.js";
+import type { ChildProcess } from "node:child_process";
 import { EventEmitter } from "node:events";
 import { createTestLogger } from "./helpers/logger.js";
 
@@ -27,6 +26,11 @@ vi.mock("onoff", () => ({
     default: { Gpio: mockGpioCtor }
 }));
 
+
+let startWhisplayPtt: typeof import("../apps/src/runtime/whisplayPtt.js").startWhisplayPtt;
+let EventBus: typeof import("../apps/src/runtime/eventBus.js").EventBus;
+let spawn: typeof import("node:child_process").spawn;
+let spawnSync: typeof import("node:child_process").spawnSync;
 
 const logger = createTestLogger();
 const hostPlatform = process.platform;
@@ -72,10 +76,16 @@ class MockChildProcess extends EventEmitter {
 }
 
 describe("Whisplay PTT", () => {
-  let bus: EventBus;
+  let bus: EventBusType;
   let config: AppConfig;
   let mockChildProcess: MockChildProcess;
   let stop: (() => void) | null = null;
+
+  beforeAll(async () => {
+    ({ startWhisplayPtt } = await import("../apps/src/runtime/whisplayPtt.js"));
+    ({ EventBus } = await import("../apps/src/runtime/eventBus.js"));
+    ({ spawn, spawnSync } = await import("node:child_process"));
+  });
 
   beforeEach(() => {
     bus = new EventBus();
@@ -97,7 +107,7 @@ describe("Whisplay PTT", () => {
       stop();
       stop = null;
     }
-    vi.restoreAllMocks();
+    vi.clearAllMocks();
   });
 
   it("should do nothing if not on linux", async () => {

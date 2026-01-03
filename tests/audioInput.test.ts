@@ -5,52 +5,50 @@ import type { AudioConfig } from "../../packages/shared/src/types.js";
 const isLinux = process.platform === "linux";
 const describeLinux = isLinux ? describe : describe.skip;
 
-if (isLinux) {
-  vi.mock("node-record-lpcm16", () => {
-    class SimpleEmitter {
-      private listeners: Record<string, Array<(...args: any[]) => void>> = {};
+vi.mock("node-record-lpcm16", () => {
+  class SimpleEmitter {
+    private listeners: Record<string, Array<(...args: any[]) => void>> = {};
 
-      on(event: string, handler: (...args: any[]) => void) {
-        this.listeners[event] = this.listeners[event] ?? [];
-        this.listeners[event].push(handler);
-        return this;
-      }
-
-      once(event: string, handler: (...args: any[]) => void) {
-        const wrapper = (...args: any[]) => {
-          this.off(event, wrapper);
-          handler(...args);
-        };
-        return this.on(event, wrapper);
-      }
-
-      off(event: string, handler: (...args: any[]) => void) {
-        const current = this.listeners[event] ?? [];
-        this.listeners[event] = current.filter((item) => item !== handler);
-        return this;
-      }
-
-      emit(event: string, ...args: any[]) {
-        const handlers = this.listeners[event] ?? [];
-        handlers.slice().forEach((handler) => handler(...args));
-        return handlers.length > 0;
-      }
+    on(event: string, handler: (...args: any[]) => void) {
+      this.listeners[event] = this.listeners[event] ?? [];
+      this.listeners[event].push(handler);
+      return this;
     }
 
-    return {
-      default: () => {
-        const emitter = new SimpleEmitter();
-        return {
-          stream: () => emitter,
-          stop: () => {
-            emitter.emit("data", Buffer.from([1, 2, 3, 4]));
-            emitter.emit("close");
-          }
-        };
-      }
-    };
-  });
-}
+    once(event: string, handler: (...args: any[]) => void) {
+      const wrapper = (...args: any[]) => {
+        this.off(event, wrapper);
+        handler(...args);
+      };
+      return this.on(event, wrapper);
+    }
+
+    off(event: string, handler: (...args: any[]) => void) {
+      const current = this.listeners[event] ?? [];
+      this.listeners[event] = current.filter((item) => item !== handler);
+      return this;
+    }
+
+    emit(event: string, ...args: any[]) {
+      const handlers = this.listeners[event] ?? [];
+      handlers.slice().forEach((handler) => handler(...args));
+      return handlers.length > 0;
+    }
+  }
+
+  return {
+    default: () => {
+      const emitter = new SimpleEmitter();
+      return {
+        stream: () => emitter,
+        stop: () => {
+          emitter.emit("data", Buffer.from([1, 2, 3, 4]));
+          emitter.emit("close");
+        }
+      };
+    }
+  };
+});
 
 vi.mock("../apps/src/common/utils.js", () => {
   const runCommand = vi.fn(async () => ({ stdout: "", stderr: "" }));

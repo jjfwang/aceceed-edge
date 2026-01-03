@@ -1,10 +1,12 @@
 import { promises as fs } from "node:fs";
 import path from "node:path";
+import { fileURLToPath } from "node:url";
 import { defineConfig } from "tsup";
 
 async function copyPromptFiles() {
-  const srcDir = path.join(__dirname, "src", "llm", "prompts");
-  const destDir = path.join(__dirname, "dist", "llm", "prompts");
+  const rootDir = path.dirname(fileURLToPath(import.meta.url));
+  const srcDir = path.join(rootDir, "src", "llm", "prompts");
+  const destDir = path.join(rootDir, "dist", "llm", "prompts");
 
   await fs.mkdir(destDir, { recursive: true });
   const entries = await fs.readdir(srcDir);
