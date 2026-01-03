@@ -19,7 +19,8 @@ export class OpenAiTts implements TtsProvider {
     }
 
     const baseUrl = cloud.baseUrl ?? "https://api.openai.com/v1";
-    const url = new URL("/audio/speech", baseUrl);
+    const normalizedBase = baseUrl.endsWith("/") ? baseUrl : `${baseUrl}/`;
+    const url = new URL("audio/speech", normalizedBase);
     const model = cloud.model ?? "tts-1";
     const voice = cloud.voiceId ?? "alloy";
     const timeoutMs = 20000;

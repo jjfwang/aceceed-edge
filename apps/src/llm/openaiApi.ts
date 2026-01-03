@@ -21,7 +21,8 @@ export class OpenAiClient implements LlmClient {
     }
 
     const baseUrl = this.config.cloud.baseUrl ?? "https://api.openai.com/v1";
-    const url = new URL("/chat/completions", baseUrl);
+    const normalizedBase = baseUrl.endsWith("/") ? baseUrl : `${baseUrl}/`;
+    const url = new URL("chat/completions", normalizedBase);
 
     let lastError: Error | undefined;
     for (let attempt = 0; attempt <= retries; attempt++) {

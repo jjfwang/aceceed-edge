@@ -22,7 +22,8 @@ export class OpenAiWhisperStt implements SttProvider {
     }
 
     const baseUrl = cloud.baseUrl ?? "https://api.openai.com/v1";
-    const url = new URL("/audio/transcriptions", baseUrl);
+    const normalizedBase = baseUrl.endsWith("/") ? baseUrl : `${baseUrl}/`;
+    const url = new URL("audio/transcriptions", normalizedBase);
     const model = cloud.model ?? "whisper-1";
     const timeoutMs = 20000;
     const retries = 2;
