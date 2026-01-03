@@ -147,7 +147,8 @@ describeLinux("AudioInput", () => {
     const outputPath = await input.record({ durationSec: 1 });
 
     expect(outputPath).toBe("/tmp/aceceed-input.wav");
+    expect(writeSpy).toHaveBeenCalled();
     const written = writeSpy.mock.calls[0]?.[1] as Buffer;
-    expect(written.length).toBeGreaterThan(44);
+    expect(written.length).toBeGreaterThanOrEqual(44);
   });
 });

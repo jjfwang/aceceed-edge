@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { configSchema } from "../../packages/shared/src/configSchema.ts";
+import { configSchema } from "../packages/shared/src/configSchema.js";
 
 describe("config schema", () => {
   it("accepts a minimal config", () => {
