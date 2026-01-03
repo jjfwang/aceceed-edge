@@ -12,7 +12,7 @@ rag:
     - "past-paper"
 
 llm:
-  mode: "local"
+  mode: "cloud"
   local:
     # LLM backends (pick ONE; the options are mutually exclusive).
     # Common settings:
@@ -48,15 +48,20 @@ llm:
     requestTimeoutMs: 10000
 
 stt:
-  mode: "local"
+  mode: "cloud"
   backend: "whispercpp"
   whispercpp:
     binPath: "/usr/local/bin/whisper-cpp-main"
     modelPath: "/opt/models/whisper/ggml-medium.bin"
     language: "auto"
+  cloud:
+    provider: "openai"
+    apiKeyEnv: "OPENAI_API_KEY"
+    model: "whisper-1"
+    baseUrl: "https://api.openai.com/v1"
 
 tts:
-  mode: "local"
+  mode: "cloud"
   backend: "piper"
   piper:
     binPath: "/usr/bin/piper"
@@ -73,6 +78,12 @@ tts:
       zh:
         voicePath: "/opt/models/piper/zh_CN-huayan-medium.onnx"
         outputSampleRate: 22050
+  cloud:
+    provider: "openai"
+    apiKeyEnv: "OPENAI_API_KEY"
+    model: "tts-1"
+    baseUrl: "https://api.openai.com/v1"
+    voiceId: "alloy"
 
 vision:
   enabled: true
