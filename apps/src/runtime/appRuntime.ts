@@ -170,6 +170,7 @@ export class AppRuntime {
 
     this.activePtt = true;
     this.pttAbort = new AbortController();
+    const keepAudio = Boolean(process.env.ACECEED_KEEP_AUDIO);
 
     try {
       if (this.config.runtime.micIndicator) {
@@ -185,7 +186,9 @@ export class AppRuntime {
       try {
         transcript = await this.stt.transcribe(audioPath);
       } finally {
-        await safeUnlink(audioPath);
+        if (!keepAudio) {
+          await safeUnlink(audioPath);
+        }
       }
       this.bus.publish({ type: "ptt:transcript", text: transcript });
 
@@ -240,7 +243,9 @@ export class AppRuntime {
         try {
           await this.audioOutput.playWav(speechPath);
         } finally {
-          await safeUnlink(speechPath);
+          if (!keepAudio) {
+            await safeUnlink(speechPath);
+          }
         }
         this.bus.publish({ type: "tts:spoken", text: fallback });
         return { transcript, response: fallback };
@@ -261,7 +266,9 @@ export class AppRuntime {
       try {
         await this.audioOutput.playWav(speechPath);
       } finally {
-        await safeUnlink(speechPath);
+        if (!keepAudio) {
+          await safeUnlink(speechPath);
+        }
       }
       this.bus.publish({ type: "tts:spoken", text: guarded });
 

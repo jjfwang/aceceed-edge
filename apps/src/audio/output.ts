@@ -18,7 +18,10 @@ export class AudioOutput {
         filePath
       ]);
     } catch (err) {
-      throw new Error(`Audio playback failed. Check output device '${this.config.output.device}'.`);
+      const details = err instanceof Error ? err.message : String(err);
+      throw new Error(
+        `Audio playback failed. Check output device '${this.config.output.device}'. ${details}`
+      );
     }
   }
 }
