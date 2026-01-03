@@ -34,6 +34,21 @@ function applyEnvOverrides(config: AppConfig): AppConfig {
     config.llm.mode = env.ACECEED_LLM_MODE as AppConfig["llm"]["mode"];
   }
 
+  if (env.ACECEED_LLM_CLOUD_MODEL) {
+    config.llm.cloud.model = env.ACECEED_LLM_CLOUD_MODEL;
+  }
+
+  if (env.ACECEED_LLM_CLOUD_BASEURL) {
+    config.llm.cloud.baseUrl = env.ACECEED_LLM_CLOUD_BASEURL;
+  }
+
+  if (env.ACECEED_LLM_CLOUD_TEMPERATURE) {
+    const parsed = Number(env.ACECEED_LLM_CLOUD_TEMPERATURE);
+    if (!Number.isNaN(parsed)) {
+      config.llm.cloud.temperature = parsed;
+    }
+  }
+
   if (env.ACECEED_LLM_LOCAL_BACKEND) {
     config.llm.local.backend = env.ACECEED_LLM_LOCAL_BACKEND as AppConfig["llm"]["local"]["backend"];
   }
@@ -89,6 +104,18 @@ function applyEnvOverrides(config: AppConfig): AppConfig {
 
   if (env.ACECEED_LOG_LEVEL) {
     config.logging.level = env.ACECEED_LOG_LEVEL as AppConfig["logging"]["level"];
+  }
+
+  if (env.ACECEED_RAG_INDEX) {
+    config.rag.indexPath = env.ACECEED_RAG_INDEX;
+  }
+
+  if (env.ACECEED_RAG_GRADE) {
+    config.rag.gradeBand = env.ACECEED_RAG_GRADE as AppConfig["rag"]["gradeBand"];
+  }
+
+  if (env.ACECEED_RAG_SUBJECTS) {
+    config.rag.subjects = env.ACECEED_RAG_SUBJECTS.split(",").map((s) => s.trim()).filter(Boolean);
   }
 
   return config;

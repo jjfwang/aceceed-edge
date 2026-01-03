@@ -4,6 +4,13 @@ import { configSchema } from "../../packages/shared/src/configSchema.js";
 describe("config schema", () => {
   it("accepts a minimal config", () => {
     const parsed = configSchema.parse({
+      rag: {
+        enabled: true,
+        indexPath: "/data/rag.json",
+        gradeBand: "primary",
+        subjects: ["math"],
+        maxChunks: 3
+      },
       llm: {
         mode: "local",
         local: {
@@ -76,6 +83,13 @@ describe("config schema", () => {
 
   it("accepts LLM-8850 config settings", () => {
     const parsed = configSchema.parse({
+      rag: {
+        enabled: false,
+        indexPath: "/data/rag.json",
+        gradeBand: "secondary",
+        subjects: ["science"],
+        maxChunks: 2
+      },
       llm: {
         mode: "local",
         local: {

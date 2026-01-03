@@ -1,3 +1,16 @@
+rag:
+  enabled: true
+  indexPath: "./docs/rag/moe_samples.json"
+  gradeBand: "primary"
+  subjects:
+    - "math"
+    - "english"
+  maxChunks: 3
+  includeSources: true
+  sourceTypes:
+    - "syllabus"
+    - "past-paper"
+
 llm:
   mode: "local"
   local:
@@ -28,7 +41,7 @@ llm:
   cloud:
     provider: "openai"
     apiKeyEnv: "OPENAI_API_KEY"
-    model: "gpt-4o-mini"
+    model: "gpt-4o" # use GPT-4o for bring-up; switch to local accelerators when ready
     baseUrl: "https://api.openai.com/v1"
     temperature: 0.2
     maxTokens: 256
@@ -72,6 +85,9 @@ vision:
       - "720"
       - "--quality"
       - "90"
+  ocr:
+    enabled: false
+    timeoutMs: 3000
 
 audio:
   input:
@@ -99,6 +115,14 @@ runtime:
     mode: "hold"
     buttonPin: 11
     bounceMs: 50
+  vision:
+    triggerKeywords:
+      - "read"
+      - "see"
+      - "check"
+      - "worksheet"
+      - "drawing"
+    requirePaperForOcr: true
 
 api:
   host: "127.0.0.1"

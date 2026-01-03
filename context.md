@@ -21,6 +21,7 @@ Aceceed Edge is an offline-first desk tutor for Raspberry Pi 5. It provides came
 |  +-------------------------+  |
 |  | Intelligence            |  |
 |  | - agents (tutor/coach)  |  |
+|  | - RAG (MOE syllabus)    |  |
 |  | - safety guard          |  |
 |  +-------------------------+  |
 |             |                 |
@@ -34,6 +35,7 @@ Aceceed Edge is an offline-first desk tutor for Raspberry Pi 5. It provides came
 
 ## Repo Map
 - `apps/edge-runtime`: main runtime (Fastify, orchestration, agents, backends)
+- `apps/edge-runtime/src/rag`: lightweight local retriever for MOE syllabus snippets
 - `packages/shared`: shared TS types + config schema
 - `configs/`: YAML configs and systemd service
 - `scripts/`: install/setup/run helpers
@@ -41,10 +43,15 @@ Aceceed Edge is an offline-first desk tutor for Raspberry Pi 5. It provides came
 - `tests/`: vitest suites
 
 ## Run (Dev/Prod)
-- Dev (keyboard PTT): `pnpm -C apps/edge-runtime dev`
+- Dev (keyboard PTT): `pnpm -C apps/edge-runtime dev` (cloud mode defaults to GPT-4o; switch to local once accelerators are set)
 - Prod: `pnpm -C apps/edge-runtime build` then `pnpm -C apps/edge-runtime start`
 - Systemd: copy `configs/systemd/aceceed-edge.service` to `/etc/systemd/system/`
 - Local LLM: start llama-server or LLM-8850 service separately (see `docs/models.md`)
+
+## Curriculum + Vision Grounding
+- `rag` config sets grade band (Primary/Secondary/JC), subjects, source types (syllabus, past papers), and index path (sample MOE+past-paper snippets in `docs/rag/moe_samples.json`).
+- TutorAgent injects RAG snippets and OCR text from the camera into the LLM prompt to stay aligned to the syllabus, past-paper style answers, and the student’s current work.
+- `runtime.vision.triggerKeywords` controls when captures occur; `vision.ocr` can point to a service URL or return `mockText` in dev.
 
 ## Add a New Agent
 1. Create a new agent in `apps/edge-runtime/src/agents/` implementing `Agent`.

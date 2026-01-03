@@ -20,6 +20,8 @@ import { AppRuntime } from "./runtime/appRuntime.js";
 import { startWhisplayPtt } from "./runtime/whisplayPtt.js";
 import { startWhisplayDisplay } from "./runtime/whisplayDisplay.js";
 import { createServer } from "./api/server.js";
+import { LocalRagRetriever } from "./rag/localStore.js";
+import { VisionOcr } from "./vision/ocr.js";
 
 function setupKeyboard(bus: EventBus, logger: ReturnType<typeof createLogger>) {
   if (!process.stdin.isTTY) {
@@ -76,6 +78,12 @@ const registry = new AgentRegistry([tutorAgent, coachAgent], enabledAgents);
 
 const vision = new VisionCapture(config.vision, logger);
 const detectors = [new SimpleActivityDetector(), new HailoStubDetector()];
+const ragRetriever =
+  config.rag.enabled === true ? new LocalRagRetriever(config.rag.indexPath, logger) : undefined;
+if (ragRetriever) {
+  await ragRetriever.init();
+}
+const ocr = config.vision.ocr?.enabled ? new VisionOcr(config.vision.ocr, logger) : undefined;
 
 const runtime = new AppRuntime(
   config,
@@ -87,7 +95,9 @@ const runtime = new AppRuntime(
   tts,
   registry,
   vision,
-  detectors
+  detectors,
+  ragRetriever,
+  ocr
 );
 
 runtime.start();

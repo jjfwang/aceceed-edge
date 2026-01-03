@@ -18,6 +18,8 @@ import type { AgentRegistry } from "../agents/registry.js";
 import { SafetyAgent } from "../agents/safetyAgent.js";
 import { safeUnlink } from "../common/utils.js";
 import type { Agent, AgentInput } from "../agents/base.js";
+import type { RagRetriever } from "../rag/types.js";
+import type { VisionOcr } from "../vision/ocr.js";
 
 const coachKeywords = [
   "coach",
@@ -88,7 +90,9 @@ export class AppRuntime {
     private tts: TtsProvider,
     private agents: AgentRegistry,
     private vision: Pick<VisionCapture, "captureStill">,
-    private detectors: VisionDetector[]
+    private detectors: VisionDetector[],
+    private rag?: RagRetriever,
+    private ocr?: VisionOcr
   ) {}
 
   start(): void {
@@ -142,6 +146,21 @@ export class AppRuntime {
     return this.activePtt;
   }
 
+  private shouldCaptureVision(transcript: string): boolean {
+    if (!this.config.vision.enabled) {
+      return false;
+    }
+    if (this.config.runtime.vision?.alwaysCapture) {
+      return true;
+    }
+    const triggers = this.config.runtime.vision?.triggerKeywords ?? [];
+    if (!triggers.length) {
+      return false;
+    }
+    const lower = transcript.toLowerCase();
+    return triggers.some((keyword) => lower.includes(keyword.toLowerCase()));
+  }
+
   async handlePttStart(source: EventSource, requestedAgentId?: string): Promise<PttResult | null> {
     if (this.activePtt) {
       const err = new Error("PTT already active");
@@ -170,7 +189,50 @@ export class AppRuntime {
       }
       this.bus.publish({ type: "ptt:transcript", text: transcript });
 
-      const agentInput: AgentInput = { transcript };
+      const agentInput: AgentInput = {
+        transcript,
+        gradeBand: this.config.rag.gradeBand,
+        subjects: this.config.rag.subjects
+      };
+
+      let capturedVision: Buffer | null = null;
+      let hasPaper = false;
+
+      if (this.shouldCaptureVision(transcript)) {
+        try {
+          const captureResult = await this.captureWithDetectors(source);
+          capturedVision = captureResult.capture;
+          hasPaper = captureResult.detectors.some((detector) => detector.paperPresent);
+        } catch (err) {
+          this.logger.warn({ err }, "Vision capture failed");
+        }
+      }
+
+      if (this.rag && this.config.rag.enabled) {
+        try {
+          agentInput.ragChunks = await this.rag.retrieve(transcript, {
+            gradeBand: this.config.rag.gradeBand,
+            subjects: this.config.rag.subjects,
+            limit: this.config.rag.maxChunks,
+            includeSources: this.config.rag.includeSources,
+            sourceTypes: this.config.rag.sourceTypes
+          });
+        } catch (err) {
+          this.logger.warn({ err }, "RAG retrieval failed");
+        }
+      }
+
+      if (
+        capturedVision &&
+        this.ocr &&
+        (!this.config.runtime.vision?.requirePaperForOcr || hasPaper)
+      ) {
+        try {
+          agentInput.ocrText = await this.ocr.run(capturedVision);
+        } catch (err) {
+          this.logger.warn({ err }, "OCR failed");
+        }
+      }
       if (!transcript) {
         const fallback = this.safetyAgent.guard("I didn't catch that. Please try again.");
         this.bus.publish({ type: "agent:response", text: fallback });

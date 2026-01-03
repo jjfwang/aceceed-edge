@@ -8,6 +8,13 @@ import { AgentRegistry } from "../../apps/edge-runtime/src/agents/registry.js";
 import { TutorAgent } from "../../apps/edge-runtime/src/agents/tutorAgent.js";
 
 const config: AppConfig = {
+  rag: {
+    enabled: true,
+    indexPath: "/tmp/rag.json",
+    gradeBand: "primary",
+    subjects: ["math"],
+    maxChunks: 2
+  },
   llm: {
     mode: "local",
     local: {
@@ -52,7 +59,20 @@ function buildRuntime() {
   const registry = new AgentRegistry([tutor], ["tutor"]);
   const vision = { captureStill: async () => ({ image: Buffer.from("1234"), mimeType: "image/jpeg" }) };
 
-  return new AppRuntime(config, logger, bus, audioInput, audioOutput, stt, tts, registry, vision, []);
+  return new AppRuntime(
+    config,
+    logger,
+    bus,
+    audioInput,
+    audioOutput,
+    stt,
+    tts,
+    registry,
+    vision,
+    [],
+    { retrieve: async () => [] },
+    undefined
+  );
 }
 
 describe("runtime service routes", () => {

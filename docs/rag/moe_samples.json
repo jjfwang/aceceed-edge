@@ -1,0 +1,55 @@
+[
+  {
+    "id": "pri-math-fractions",
+    "gradeBand": "primary",
+    "subject": "math",
+    "topic": "fractions",
+    "content": "In Singapore Primary Mathematics, students learn that a fraction represents equal parts of a whole. To add fractions with the same denominator, add the numerators and keep the denominator.",
+    "source": "MOE Primary Mathematics Syllabus"
+  },
+  {
+    "id": "sec-chem-atomic-structure",
+    "gradeBand": "secondary",
+    "subject": "science",
+    "topic": "atomic structure",
+    "content": "At the Secondary level, atoms consist of protons, neutrons, and electrons. Protons define the atomic number; electrons determine chemical properties.",
+    "source": "MOE Lower Secondary Science Syllabus"
+  },
+  {
+    "id": "jc-physics-kinematics",
+    "gradeBand": "jc",
+    "subject": "physics",
+    "topic": "kinematics",
+    "content": "In JC Physics, displacement is a vector describing change in position. Velocity is the rate of change of displacement, and acceleration is the rate of change of velocity.",
+    "source": "MOE H1/H2 Physics Syllabus"
+  },
+  {
+    "id": "pri-english-comprehension",
+    "gradeBand": "primary",
+    "subject": "english",
+    "topic": "comprehension",
+    "content": "Primary English comprehension answers should quote relevant parts of the text and use full sentences. Students should restate the question in their own words to begin the answer.",
+    "source": "MOE Primary English Syllabus",
+    "sourceType": "syllabus"
+  },
+  {
+    "id": "pri-math-pastpaper-2023-q4",
+    "gradeBand": "primary",
+    "subject": "math",
+    "topic": "fractions",
+    "content": "Past paper working: Convert mixed numbers to improper fractions before adding. Common denominator of 3 and 5 is 15; rewrite, add numerators, simplify.",
+    "source": "Past Paper 2023 P6 Math Q4",
+    "sourceType": "past-paper",
+    "tags": ["working", "solution", "P6"]
+  },
+  {
+    "id": "sec-chem-pastpaper-2022-q12",
+    "gradeBand": "secondary",
+    "subject": "science",
+    "topic": "atomic structure",
+    "content": "Past paper answer: Sodium-23 has 11 protons, 12 neutrons, and 11 electrons. Isotopes vary in neutron number but share chemical properties.",
+    "source": "Past Paper 2022 Sec3 Chemistry Q12",
+    "sourceType": "past-paper",
+    "tags": ["answer", "isotopes"]
+  }
+]

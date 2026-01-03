@@ -8,6 +8,13 @@ import { TutorAgent } from "../../apps/edge-runtime/src/agents/tutorAgent.js";
 import type { VisionDetector } from "../../apps/edge-runtime/src/vision/detectors/base.js";
 
 const config: AppConfig = {
+  rag: {
+    enabled: true,
+    indexPath: "/tmp/rag.json",
+    gradeBand: "primary",
+    subjects: ["math"],
+    maxChunks: 2
+  },
   llm: {
     mode: "local",
     local: {
@@ -84,7 +91,9 @@ describe("AppRuntime", () => {
       tts,
       registry,
       vision,
-      []
+      [],
+      { retrieve: async () => [] },
+      undefined
     );
 
     const result = await runtime.handlePttStart("api");
@@ -134,7 +143,9 @@ describe("AppRuntime", () => {
       tts,
       registry,
       vision,
-      []
+      [],
+      { retrieve: async () => [] },
+      undefined
     );
 
     const result = await runtime.handlePttStart("api");
@@ -184,7 +195,9 @@ describe("AppRuntime", () => {
       tts,
       registry,
       vision,
-      []
+      [],
+      { retrieve: async () => [] },
+      undefined
     );
 
     const result = await runtime.handlePttStart("api", "coach");
@@ -235,7 +248,9 @@ describe("AppRuntime", () => {
       tts,
       registry,
       vision,
-      []
+      [],
+      { retrieve: async () => [] },
+      undefined
     );
 
     const first = runtime.handlePttStart("api");
@@ -278,7 +293,9 @@ describe("AppRuntime", () => {
       tts,
       registry,
       vision,
-      detectors
+      detectors,
+      { retrieve: async () => [] },
+      undefined
     );
 
     const result = await runtime.captureWithDetectors("api");
@@ -331,7 +348,9 @@ describe("AppRuntime", () => {
       tts,
       registry,
       vision,
-      []
+      [],
+      { retrieve: async () => [] },
+      undefined
     );
 
     await runtime.handlePttStart("api");
@@ -367,7 +386,9 @@ describe("AppRuntime", () => {
       tts,
       registry,
       vision,
-      detectors
+      detectors,
+      { retrieve: async () => [] },
+      undefined
     );
 
     const result = await runtime.captureWithDetectors("api");
@@ -398,7 +419,9 @@ describe("AppRuntime", () => {
       tts,
       registry,
       vision,
-      []
+      [],
+      { retrieve: async () => [] },
+      undefined
     );
 
     const services = runtime.getServiceStatus();

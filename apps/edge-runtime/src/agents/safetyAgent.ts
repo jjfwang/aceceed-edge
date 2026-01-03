@@ -3,7 +3,13 @@ const bannedPhrases = [
   "weapon",
   "adult",
   "explicit",
-  "self-harm"
+  "self-harm",
+  "suicide",
+  "kill",
+  "threat",
+  "terror",
+  "hate",
+  "bully"
 ];
 
 export class SafetyAgent {

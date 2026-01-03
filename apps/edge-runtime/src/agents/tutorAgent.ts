@@ -78,6 +78,36 @@ function buildTranslationMessages(text: string, language: string) {
   ];
 }
 
+function buildCurriculumContext(input: AgentInput): string | null {
+  const lines: string[] = [];
+
+  if (input.gradeBand) {
+    lines.push(`You are helping a Singapore ${input.gradeBand} student.`);
+  }
+  if (input.subjects && input.subjects.length > 0) {
+    lines.push(`The focus subjects are: ${input.subjects.join(", ")}.`);
+  }
+
+  if (input.ragChunks && input.ragChunks.length > 0) {
+    lines.push("Use the following syllabus-aligned references first:");
+    for (const chunk of input.ragChunks) {
+      const sourceLabel = chunk.source ? ` (source: ${chunk.source})` : "";
+      const sourceType = chunk.sourceType ? `[${chunk.sourceType}] ` : "";
+      lines.push(`- ${sourceType}${chunk.subject}/${chunk.topic}: ${chunk.content}${sourceLabel}`);
+    }
+  }
+
+  if (input.ocrText) {
+    lines.push(`Student work (OCR): ${input.ocrText}`);
+  }
+
+  if (!lines.length) {
+    return null;
+  }
+
+  return lines.join("\n");
+}
+
 
 export class TutorAgent implements Agent {
   id = "tutor";
@@ -96,9 +126,11 @@ export class TutorAgent implements Agent {
 
     const languageHint = detectResponseLanguage(input.transcript);
     const finalPrompt = buildSystemPrompt(this.systemPrompt, languageHint?.label ?? null);
+    const curriculumContext = buildCurriculumContext(input);
 
     const messages = [
       { role: "system", content: finalPrompt },
+      ...(curriculumContext ? [{ role: "system" as const, content: curriculumContext }] : []),
       { role: "user", content: input.transcript }
     ];
 

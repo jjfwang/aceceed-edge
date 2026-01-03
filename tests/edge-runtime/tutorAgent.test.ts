@@ -48,4 +48,38 @@ describe("TutorAgent", () => {
     expect(result?.text).toBe("这是中文。");
   });
 
+  it("injects curriculum, rag, and ocr context", async () => {
+    const captured: ChatMessage[] = [];
+    const llm = {
+      generate: async (messages: ChatMessage[]) => {
+        captured.push(...messages);
+        return "answer";
+      }
+    };
+    const agent = new TutorAgent(llm, "system");
+
+    await agent.handle({
+      transcript: "Explain fractions",
+      gradeBand: "primary",
+      subjects: ["math"],
+      ragChunks: [
+        {
+          id: "1",
+          gradeBand: "primary",
+          subject: "math",
+          topic: "fractions",
+          content: "Use common denominators",
+          source: "test",
+          sourceType: "past-paper"
+        }
+      ],
+      ocrText: "handwritten work"
+    });
+
+    const systemMessages = captured.filter((msg) => msg.role === "system").map((msg) => msg.content);
+    expect(systemMessages.some((text) => text.includes("Singapore primary"))).toBe(true);
+    expect(systemMessages.some((text) => text.includes("Use the following syllabus-aligned"))).toBe(true);
+    expect(systemMessages.some((text) => text.includes("[past-paper]"))).toBe(true);
+    expect(systemMessages.some((text) => text.includes("handwritten work"))).toBe(true);
+  });
 });
