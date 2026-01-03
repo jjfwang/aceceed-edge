@@ -110,7 +110,7 @@ audio:
     arecordPath: "arecord"
   output:
     backend: "aplay"
-    device: "plughw:2,0"
+    device: "plughw:CARD=wm8960soundcard,DEV=0"
     aplayPath: "aplay"
 
 runtime:
