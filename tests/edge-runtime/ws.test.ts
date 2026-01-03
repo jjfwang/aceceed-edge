@@ -1,8 +1,8 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { FastifyInstance } from "fastify";
-import { EventBus } from "../../apps/edge-runtime/src/runtime/eventBus";
-import { registerEventSocket } from "../../apps/edge-runtime/src/api/ws";
-import { AppEvent } from "../../apps/edge-runtime/src/runtime/state";
+import { EventBus } from "../../apps/edge-runtime/src/runtime/eventBus.js";
+import { registerEventSocket } from "../../apps/edge-runtime/src/api/ws.js";
+import { AppEvent } from "../../apps/edge-runtime/src/runtime/state.js";
 
 describe("WebSocket API", () => {
   let server: FastifyInstance;
@@ -11,7 +11,7 @@ describe("WebSocket API", () => {
   let handler: (event: AppEvent) => void;
 
   beforeEach(() => {
-    bus = new EventBus(console as any);
+    bus = new EventBus();
     connection = {
       socket: {
         send: vi.fn(),

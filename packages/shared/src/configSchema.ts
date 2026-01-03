@@ -1,6 +1,15 @@
 import { z } from "zod";
 
 export const configSchema = z.object({
+  rag: z.object({
+    enabled: z.boolean(),
+    indexPath: z.string().min(1),
+    gradeBand: z.enum(["primary", "secondary", "jc"]),
+    subjects: z.array(z.string().min(1)),
+    maxChunks: z.number().int().positive(),
+    includeSources: z.boolean().optional(),
+    sourceTypes: z.array(z.string().min(1)).optional()
+  }),
   llm: z.object({
     mode: z.enum(["local", "cloud"]),
     local: z.object({
@@ -83,7 +92,15 @@ export const configSchema = z.object({
       backend: z.enum(["rpicam-still", "libcamera-still", "camera-service"]),
       stillArgs: z.array(z.string()),
       cameraServiceUrl: z.string().url().optional()
-    })
+    }),
+    ocr: z
+      .object({
+        enabled: z.boolean(),
+        serviceUrl: z.string().url().optional(),
+        timeoutMs: z.number().int().positive().optional(),
+        mockText: z.string().min(1).optional()
+      })
+      .optional()
   }),
   audio: z.object({
     input: z.object({
@@ -116,6 +133,13 @@ export const configSchema = z.object({
         buttonPin: z.number().int().positive().optional(),
         bounceMs: z.number().int().positive().optional(),
         mode: z.enum(["hold", "toggle"]).optional()
+      })
+      .optional(),
+    vision: z
+      .object({
+        alwaysCapture: z.boolean().optional(),
+        triggerKeywords: z.array(z.string().min(1)).optional(),
+        requirePaperForOcr: z.boolean().optional()
       })
       .optional()
   }),

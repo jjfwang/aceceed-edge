@@ -1,59 +1,23 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { LocalLlamaCppClient } from "../../apps/edge-runtime/src/llm/localLlamaCpp";
-import { LlmConfig, Config } from "@aceceed/shared";
+import { LocalLlamaCppClient } from "../../apps/edge-runtime/src/llm/localLlamaCpp.js";
+import type { LlmConfig } from "@aceceed/shared";
 import pino from "pino";
 
 const logger = pino({ level: "silent" });
 
-const baseConfig: Config = {
-  version: 1,
-  runtime: {
-    app: "default",
-    logLevel: "silent",
-    detectorTimeoutMs: 1000,
-    pushToTalkMode: "hold",
-    agents: {
-      default: "tutor",
-    },
+const baseConfig: LlmConfig = {
+  mode: "local",
+  local: {
+    backend: "llama.cpp",
+    llamaServerUrl: "http://localhost:8080",
+    ctx: 1024,
+    temperature: 0.7
   },
-  api: {
-    port: 8000,
-  },
-  llm: {
-    default: "local",
-    local: {
-      backend: "llama.cpp",
-      llamaServerUrl: "http://localhost:8080",
-      temperature: 0.7,
-    },
-  },
-  stt: {
-    default: "whisper.cpp",
-    whispercpp: {
-      modelPath: "/dev/null",
-      language: "en",
-    },
-  },
-  tts: {
-    default: "piper",
-    piper: {
-      voicePath: "/dev/null",
-    },
-  },
-  vision: {
-    default: "simple",
-    capture: {
-      device: "v4l2",
-    },
-  },
-  audio: {
-    input: {
-      device: "default",
-    },
-    output: {
-      device: "default",
-    },
-  },
+  cloud: {
+    provider: "openai",
+    apiKeyEnv: "OPENAI_API_KEY",
+    model: "gpt-4o-mini"
+  }
 };
 
 describe("LocalLlamaCppClient", () => {
@@ -61,7 +25,7 @@ describe("LocalLlamaCppClient", () => {
   let llmConfig: LlmConfig;
 
   beforeEach(() => {
-    llmConfig = baseConfig.llm;
+    llmConfig = baseConfig;
     client = new LocalLlamaCppClient(llmConfig, logger);
   });
 

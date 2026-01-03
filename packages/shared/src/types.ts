@@ -95,6 +95,12 @@ export interface VisionConfig {
     stillArgs: string[];
     cameraServiceUrl?: string;
   };
+  ocr?: {
+    enabled: boolean;
+    serviceUrl?: string;
+    timeoutMs?: number;
+    mockText?: string;
+  };
 }
 
 export interface AudioConfig {
@@ -127,6 +133,11 @@ export interface RuntimeConfig {
     bounceMs?: number;
     mode?: "hold" | "toggle";
   };
+  vision?: {
+    alwaysCapture?: boolean;
+    triggerKeywords?: string[];
+    requirePaperForOcr?: boolean;
+  };
 }
 
 export interface ApiConfig {
@@ -148,6 +159,7 @@ export interface RuntimeServiceStatus {
 }
 
 export interface AppConfig {
+  rag: RagConfig;
   llm: LlmConfig;
   stt: SttConfig;
   tts: TtsConfig;
@@ -175,4 +187,27 @@ export interface DetectorRunResult extends DetectorResult {
 export interface PttResult {
   transcript: string;
   response: string;
+}
+
+export type GradeBand = "primary" | "secondary" | "jc";
+
+export interface RagConfig {
+  enabled: boolean;
+  indexPath: string;
+  gradeBand: GradeBand;
+  subjects: string[];
+  maxChunks: number;
+  includeSources?: boolean;
+  sourceTypes?: string[];
+}
+
+export interface RagChunk {
+  id: string;
+  gradeBand: GradeBand;
+  subject: string;
+  topic: string;
+  content: string;
+  sourceType?: string;
+  tags?: string[];
+  source?: string;
 }
