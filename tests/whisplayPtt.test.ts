@@ -5,31 +5,32 @@ import type { ChildProcess } from "node:child_process";
 import { EventEmitter } from "node:events";
 import { createTestLogger } from "./helpers/logger.js";
 
+const mockSpawn = vi.fn();
+const mockSpawnSync = vi.fn();
+
 vi.mock("node:child_process", async (importOriginal) => {
-    const original = await importOriginal();
-    return {
-        ...original,
-        spawn: vi.fn(),
-        spawnSync: vi.fn(),
-    };
+  const original = await importOriginal();
+  return {
+    ...original,
+    spawn: mockSpawn,
+    spawnSync: mockSpawnSync
+  };
 });
 
 const mockGpio = {
-    watch: vi.fn(),
-    unwatchAll: vi.fn(),
-    unexport: vi.fn(),
+  watch: vi.fn(),
+  unwatchAll: vi.fn(),
+  unexport: vi.fn()
 };
 const mockGpioCtor = vi.fn(() => mockGpio);
 
 vi.mock("onoff", () => ({
-    Gpio: mockGpioCtor,
-    default: { Gpio: mockGpioCtor }
+  Gpio: mockGpioCtor,
+  default: { Gpio: mockGpioCtor }
 }));
-
 
 let startWhisplayPtt: typeof import("../apps/src/runtime/whisplayPtt.js").startWhisplayPtt;
 let EventBus: typeof import("../apps/src/runtime/eventBus.js").EventBus;
-let childProcess: typeof import("node:child_process");
 
 const logger = createTestLogger();
 const hostPlatform = process.platform;
@@ -66,12 +67,12 @@ const baseConfig: AppConfig = {
 };
 
 class MockChildProcess extends EventEmitter {
-    stdout = new EventEmitter();
-    stderr = new EventEmitter();
-    killed = false;
-    kill = vi.fn(() => {
-        this.killed = true;
-    });
+  stdout = new EventEmitter();
+  stderr = new EventEmitter();
+  killed = false;
+  kill = vi.fn(() => {
+    this.killed = true;
+  });
 }
 
 describe("Whisplay PTT", () => {
@@ -83,16 +84,15 @@ describe("Whisplay PTT", () => {
   beforeAll(async () => {
     ({ startWhisplayPtt } = await import("../apps/src/runtime/whisplayPtt.js"));
     ({ EventBus } = await import("../apps/src/runtime/eventBus.js"));
-    childProcess = await vi.importMock<typeof import("node:child_process")>("node:child_process");
   });
 
   beforeEach(() => {
     bus = new EventBus();
     config = structuredClone(baseConfig);
     mockChildProcess = new MockChildProcess();
-    vi.mocked(childProcess.spawn).mockReturnValue(mockChildProcess as unknown as ChildProcess);
+    mockSpawn.mockReturnValue(mockChildProcess as unknown as ChildProcess);
     Object.defineProperty(process, "platform", {
-        value: "linux",
+      value: "linux"
     });
     mockGpioCtor.mockClear();
     mockGpio.watch.mockClear();
@@ -111,22 +111,21 @@ describe("Whisplay PTT", () => {
 
   it("should do nothing if not on linux", async () => {
     Object.defineProperty(process, "platform", {
-        value: "darwin",
+      value: "darwin"
     });
     stop = await startWhisplayPtt(bus, config, logger);
     stop();
     stop = null;
-    expect(childProcess.spawn).not.toHaveBeenCalled();
+    expect(mockSpawn).not.toHaveBeenCalled();
   });
 
   it("should try gpiomon first", async () => {
-    vi.mocked(childProcess.spawnSync).mockReturnValue({ error: undefined } as any);
+    mockSpawnSync.mockReturnValue({ error: undefined } as any);
     stop = await startWhisplayPtt(bus, config, logger);
-    expect(childProcess.spawn).toHaveBeenCalledWith("gpiomon", expect.any(Array), expect.any(Object));
+    expect(mockSpawn).toHaveBeenCalledWith("gpiomon", expect.any(Array), expect.any(Object));
   });
-  
-it("should publish ptt:start and ptt:stop on gpiomon events in hold mode", async () => {
-    vi.mocked(childProcess.spawnSync).mockReturnValue({ error: undefined } as any);
+  it("should publish ptt:start and ptt:stop on gpiomon events in hold mode", async () => {
+    mockSpawnSync.mockReturnValue({ error: undefined } as any);
     config.runtime.whisplay!.bounceMs = 0;
     const publishSpy = vi.spyOn(bus, "publish");
     stop = await startWhisplayPtt(bus, config, logger);
@@ -139,7 +138,7 @@ it("should publish ptt:start and ptt:stop on gpiomon events in hold mode", async
   });
 
   it("should publish ptt:start and ptt:stop on gpiomon events in toggle mode", async () => {
-    vi.mocked(childProcess.spawnSync).mockReturnValue({ error: undefined } as any);
+    mockSpawnSync.mockReturnValue({ error: undefined } as any);
     config.runtime.whisplay!.mode = "toggle";
     config.runtime.whisplay!.bounceMs = 0;
     const publishSpy = vi.spyOn(bus, "publish");
@@ -153,7 +152,7 @@ it("should publish ptt:start and ptt:stop on gpiomon events in hold mode", async
   });
 
   it("should kill gpiomon process on stop", async () => {
-    vi.mocked(childProcess.spawnSync).mockReturnValue({ error: undefined } as any);
+    mockSpawnSync.mockReturnValue({ error: undefined } as any);
     stop = await startWhisplayPtt(bus, config, logger);
     stop();
     stop = null;
@@ -161,7 +160,7 @@ it("should publish ptt:start and ptt:stop on gpiomon events in hold mode", async
   });
 
   itOnoff("should fallback to onoff if gpiomon is not available", async () => {
-    vi.mocked(childProcess.spawnSync).mockReturnValue({
+    mockSpawnSync.mockReturnValue({
       error: Object.assign(new Error("ENOENT"), { code: "ENOENT" })
     } as any);
     const Gpio = await vi.importMock<typeof import("onoff")>("onoff");
@@ -170,7 +169,7 @@ it("should publish ptt:start and ptt:stop on gpiomon events in hold mode", async
   });
 
   itOnoff("should publish ptt:start and ptt:stop on onoff events in hold mode", async () => {
-    vi.mocked(childProcess.spawnSync).mockReturnValue({
+    mockSpawnSync.mockReturnValue({
       error: Object.assign(new Error("ENOENT"), { code: "ENOENT" })
     } as any);
     config.runtime.whisplay!.bounceMs = 0;
@@ -185,22 +184,25 @@ it("should publish ptt:start and ptt:stop on gpiomon events in hold mode", async
     expect(publishSpy).toHaveBeenCalledWith({ type: "ptt:stop", source: "whisplay" });
   });
 
-    itOnoff("should clean up onoff resources on stop", async () => {
-        vi.mocked(childProcess.spawnSync).mockReturnValue({
-          error: Object.assign(new Error("ENOENT"), { code: "ENOENT" })
-        } as any);
-        stop = await startWhisplayPtt(bus, config, logger);
-        stop();
-        stop = null;
-        expect(mockGpio.unwatchAll).toHaveBeenCalled();
-        expect(mockGpio.unexport).toHaveBeenCalled();
-    });
+  itOnoff("should clean up onoff resources on stop", async () => {
+    mockSpawnSync.mockReturnValue({
+      error: Object.assign(new Error("ENOENT"), { code: "ENOENT" })
+    } as any);
+    stop = await startWhisplayPtt(bus, config, logger);
+    stop();
+    stop = null;
+    expect(mockGpio.unwatchAll).toHaveBeenCalled();
+    expect(mockGpio.unexport).toHaveBeenCalled();
+  });
 
-    it("should log error on gpiomon error", async () => {
-        vi.mocked(childProcess.spawnSync).mockReturnValue({ error: undefined } as any);
-        const loggerSpy = vi.spyOn(logger, "warn");
-        stop = await startWhisplayPtt(bus, config, logger);
-        mockChildProcess.emit("error", new Error("test error"));
-        expect(loggerSpy).toHaveBeenCalledWith({ err: new Error("test error") }, "Whisplay PTT gpiomon failed to start.");
-    });
+  it("should log error on gpiomon error", async () => {
+    mockSpawnSync.mockReturnValue({ error: undefined } as any);
+    const loggerSpy = vi.spyOn(logger, "warn");
+    stop = await startWhisplayPtt(bus, config, logger);
+    mockChildProcess.emit("error", new Error("test error"));
+    expect(loggerSpy).toHaveBeenCalledWith(
+      { err: new Error("test error") },
+      "Whisplay PTT gpiomon failed to start."
+    );
+  });
 });
