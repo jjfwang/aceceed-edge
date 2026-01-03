@@ -106,9 +106,11 @@ export const configSchema = z.object({
     micIndicator: z.boolean(),
     agents: z
       .object({
-        enabled: z.array(z.string())
+        enabled: z.array(z.string()),
+        default: z.string().min(1).optional()
       })
       .optional(),
+    detectorTimeoutMs: z.number().int().positive().optional(),
     whisplay: z
       .object({
         buttonPin: z.number().int().positive().optional(),

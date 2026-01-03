@@ -4,6 +4,7 @@ import type { EventBus } from "../runtime/eventBus.js";
 import {
   cameraResponseSchema,
   errorResponseSchema,
+  pttStartRequestSchema,
   runtimeServicesResponseSchema,
   pttStartResponseSchema,
   pttStopResponseSchema
@@ -13,15 +14,19 @@ export function registerRoutes(server: FastifyInstance, runtime: AppRuntime, bus
   server.post(
     "/v1/ptt/start",
     {
-      schema: { response: { 200: pttStartResponseSchema, 409: errorResponseSchema, 500: errorResponseSchema } }
+      schema: {
+        body: pttStartRequestSchema,
+        response: { 200: pttStartResponseSchema, 409: errorResponseSchema, 500: errorResponseSchema }
+      }
     },
-    async (_req, reply) => {
+    async (req, reply) => {
       if (runtime.isPttActive()) {
         return reply.code(409).send({ status: "error", message: "PTT already active" });
       }
       try {
+        const requestedAgent = (req.body as { agent?: string } | undefined)?.agent;
         bus.publish({ type: "ptt:start", source: "api" });
-        const result = await runtime.handlePttStart("api");
+        const result = await runtime.handlePttStart("api", requestedAgent);
         return {
           status: "completed",
           transcript: result?.transcript ?? "",

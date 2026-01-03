@@ -17,7 +17,61 @@ import type { EventSource } from "./state.js";
 import type { AgentRegistry } from "../agents/registry.js";
 import { SafetyAgent } from "../agents/safetyAgent.js";
 import { safeUnlink } from "../common/utils.js";
-import type { AgentInput } from "../agents/base.js";
+import type { Agent, AgentInput } from "../agents/base.js";
+
+const coachKeywords = [
+  "coach",
+  "study plan",
+  "plan",
+  "schedule",
+  "routine",
+  "focus",
+  "motivate",
+  "motivation",
+  "goal",
+  "habit",
+  "discipline",
+  "time management",
+  "procrastinate"
+];
+
+const detectorTimeoutDefaultMs = 1500;
+
+function wantsCoach(transcript: string): boolean {
+  const lower = transcript.toLowerCase();
+  return coachKeywords.some((keyword) => lower.includes(keyword));
+}
+
+function runWithTimeout<T>(task: Promise<T>, timeoutMs: number): Promise<T> {
+  return new Promise((resolve, reject) => {
+    let settled = false;
+    const timer = setTimeout(() => {
+      if (settled) {
+        return;
+      }
+      settled = true;
+      reject(new Error("Detector timeout"));
+    }, timeoutMs);
+
+    task
+      .then((result) => {
+        if (settled) {
+          return;
+        }
+        settled = true;
+        clearTimeout(timer);
+        resolve(result);
+      })
+      .catch((err) => {
+        if (settled) {
+          return;
+        }
+        settled = true;
+        clearTimeout(timer);
+        reject(err);
+      });
+  });
+}
 
 export class AppRuntime {
   private activePtt = false;
@@ -55,11 +109,40 @@ export class AppRuntime {
     });
   }
 
+  private selectAgent(transcript: string, requestedAgentId?: string): Agent | null {
+    if (requestedAgentId) {
+      const requested = this.agents.get(requestedAgentId);
+      if (requested) {
+        return requested;
+      }
+      this.logger.warn({ requestedAgentId }, "Requested agent not enabled");
+    }
+
+    const defaultAgentId = this.config.runtime.agents?.default;
+    if (defaultAgentId) {
+      const defaultAgent = this.agents.get(defaultAgentId);
+      if (defaultAgent) {
+        return defaultAgent;
+      }
+      this.logger.warn({ defaultAgentId }, "Default agent not enabled");
+    }
+
+    const coach = this.agents.get("coach");
+    const tutor = this.agents.get("tutor");
+    if (coach && wantsCoach(transcript)) {
+      return coach;
+    }
+    if (tutor) {
+      return tutor;
+    }
+    return this.agents.firstEnabled();
+  }
+
   isPttActive(): boolean {
     return this.activePtt;
   }
 
-  async handlePttStart(source: EventSource): Promise<PttResult | null> {
+  async handlePttStart(source: EventSource, requestedAgentId?: string): Promise<PttResult | null> {
     if (this.activePtt) {
       const err = new Error("PTT already active");
       this.logger.warn(err.message);
@@ -87,11 +170,6 @@ export class AppRuntime {
       }
       this.bus.publish({ type: "ptt:transcript", text: transcript });
 
-      const tutor = this.agents.get("tutor");
-      if (!tutor) {
-        throw new Error("Tutor agent not enabled");
-      }
-
       const agentInput: AgentInput = { transcript };
       if (!transcript) {
         const fallback = this.safetyAgent.guard("I didn't catch that. Please try again.");
@@ -102,9 +180,14 @@ export class AppRuntime {
         } finally {
           await safeUnlink(speechPath);
         }
+        this.bus.publish({ type: "tts:spoken", text: fallback });
         return { transcript, response: fallback };
       }
-      const agentOutput = await tutor.handle(agentInput);
+      const agent = this.selectAgent(transcript, requestedAgentId);
+      if (!agent) {
+        throw new Error("No enabled agents");
+      }
+      const agentOutput = await agent.handle(agentInput);
       if (!agentOutput) {
         throw new Error("Tutor agent did not return output");
       }
@@ -146,12 +229,21 @@ export class AppRuntime {
     }
 
     const capture = await this.vision.captureStill();
-    const results: DetectorRunResult[] = [];
+    const timeoutMs = this.config.runtime.detectorTimeoutMs ?? detectorTimeoutDefaultMs;
+    const tasks = this.detectors.map(async (detector) => {
+      try {
+        const result: DetectorResult = await runWithTimeout(
+          detector.detect(capture.image),
+          timeoutMs
+        );
+        return { id: detector.id, ...result };
+      } catch (err) {
+        this.logger.warn({ err, detector: detector.id }, "Detector failed");
+        return { id: detector.id, paperPresent: false, motionScore: 0 };
+      }
+    });
 
-    for (const detector of this.detectors) {
-      const result: DetectorResult = await detector.detect(capture.image);
-      results.push({ id: detector.id, ...result });
-    }
+    const results: DetectorRunResult[] = await Promise.all(tasks);
 
     this.bus.publish({
       type: "camera:capture",

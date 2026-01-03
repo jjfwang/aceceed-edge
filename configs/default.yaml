@@ -93,6 +93,8 @@ runtime:
   agents:
     enabled:
       - "tutor"
+    # default: "tutor"
+  # detectorTimeoutMs: 1500
   whisplay:
     mode: "hold"
     buttonPin: 11

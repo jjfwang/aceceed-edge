@@ -84,4 +84,34 @@ describe("runtime service routes", () => {
 
     await server.close();
   });
+
+  it("passes agent overrides to PTT start", async () => {
+    const bus = new EventBus();
+    let captured: string | undefined;
+
+    const runtime = {
+      isPttActive: () => false,
+      handlePttStart: async (_source: string, agentId?: string) => {
+        captured = agentId;
+        return { transcript: "hi", response: "ok" };
+      },
+      handlePttStop: () => undefined,
+      captureWithDetectors: async () => ({ capture: Buffer.from(""), detectors: [] }),
+      getServiceStatus: () => []
+    } as unknown as AppRuntime;
+
+    const server = createServer(config, runtime, bus);
+    await server.ready();
+
+    const response = await server.inject({
+      method: "POST",
+      url: "/v1/ptt/start",
+      payload: { agent: "coach" }
+    });
+
+    expect(response.statusCode).toBe(200);
+    expect(captured).toBe("coach");
+
+    await server.close();
+  });
 });

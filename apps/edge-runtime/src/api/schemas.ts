@@ -8,6 +8,14 @@ export const pttStartResponseSchema = {
   required: ["status", "transcript", "response"]
 };
 
+export const pttStartRequestSchema = {
+  type: ["object", "null"],
+  properties: {
+    agent: { type: "string" }
+  },
+  additionalProperties: false
+};
+
 export const pttStopResponseSchema = {
   type: "object",
   properties: {

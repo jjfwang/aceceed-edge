@@ -91,6 +91,106 @@ describe("AppRuntime", () => {
     expect(result?.response).toContain("Try adding");
   });
 
+  it("routes coaching intents to the coach agent", async () => {
+    const logger = pino({ level: "silent" });
+    const bus = new EventBus();
+
+    const audioInput = {
+      record: async () => {
+        const fs = await import("node:fs/promises");
+        const path = await import("node:path");
+        const filePath = path.join("/tmp", `aceceed-test-${Date.now()}.wav`);
+        await fs.writeFile(filePath, "test");
+        return filePath;
+      }
+    };
+
+    const stt = { transcribe: async () => "I need a study plan for math" };
+
+    const tts = {
+      synthesize: async () => {
+        const fs = await import("node:fs/promises");
+        const path = await import("node:path");
+        const filePath = path.join("/tmp", `aceceed-test-tts-${Date.now()}.wav`);
+        await fs.writeFile(filePath, "test");
+        return filePath;
+      }
+    };
+
+    const audioOutput = { playWav: async () => undefined };
+
+    const tutor = { id: "tutor", name: "Tutor", handle: async () => ({ text: "tutor answer" }) };
+    const coach = { id: "coach", name: "Coach", handle: async () => ({ text: "coach plan" }) };
+    const registry = new AgentRegistry([tutor, coach], ["tutor", "coach"]);
+    const vision = { captureStill: async () => ({ image: Buffer.from(""), mimeType: "image/jpeg" }) };
+
+    const runtime = new AppRuntime(
+      config,
+      logger,
+      bus,
+      audioInput,
+      audioOutput,
+      stt,
+      tts,
+      registry,
+      vision,
+      []
+    );
+
+    const result = await runtime.handlePttStart("api");
+    expect(result?.response).toContain("coach plan");
+  });
+
+  it("honors explicit agent overrides", async () => {
+    const logger = pino({ level: "silent" });
+    const bus = new EventBus();
+
+    const audioInput = {
+      record: async () => {
+        const fs = await import("node:fs/promises");
+        const path = await import("node:path");
+        const filePath = path.join("/tmp", `aceceed-test-${Date.now()}.wav`);
+        await fs.writeFile(filePath, "test");
+        return filePath;
+      }
+    };
+
+    const stt = { transcribe: async () => "What is 2+2?" };
+
+    const tts = {
+      synthesize: async () => {
+        const fs = await import("node:fs/promises");
+        const path = await import("node:path");
+        const filePath = path.join("/tmp", `aceceed-test-tts-${Date.now()}.wav`);
+        await fs.writeFile(filePath, "test");
+        return filePath;
+      }
+    };
+
+    const audioOutput = { playWav: async () => undefined };
+
+    const tutor = { id: "tutor", name: "Tutor", handle: async () => ({ text: "tutor answer" }) };
+    const coach = { id: "coach", name: "Coach", handle: async () => ({ text: "coach answer" }) };
+    const registry = new AgentRegistry([tutor, coach], ["tutor", "coach"]);
+    const vision = { captureStill: async () => ({ image: Buffer.from(""), mimeType: "image/jpeg" }) };
+
+    const runtime = new AppRuntime(
+      config,
+      logger,
+      bus,
+      audioInput,
+      audioOutput,
+      stt,
+      tts,
+      registry,
+      vision,
+      []
+    );
+
+    const result = await runtime.handlePttStart("api", "coach");
+    expect(result?.response).toContain("coach answer");
+  });
+
   it("rejects concurrent PTT starts", async () => {
     const logger = pino({ level: "silent" });
     const bus = new EventBus();
@@ -184,6 +284,95 @@ describe("AppRuntime", () => {
     const result = await runtime.captureWithDetectors("api");
     expect(result.detectors).toHaveLength(2);
     expect(events).toContain("camera:capture");
+  });
+
+  it("publishes tts:spoken when transcript is empty", async () => {
+    const logger = pino({ level: "silent" });
+    const bus = new EventBus();
+    const events: string[] = [];
+    bus.subscribe((event) => {
+      events.push(event.type);
+    });
+
+    const audioInput = {
+      record: async () => {
+        const fs = await import("node:fs/promises");
+        const path = await import("node:path");
+        const filePath = path.join("/tmp", `aceceed-test-${Date.now()}.wav`);
+        await fs.writeFile(filePath, "test");
+        return filePath;
+      }
+    };
+
+    const stt = { transcribe: async () => "" };
+
+    const tts = {
+      synthesize: async () => {
+        const fs = await import("node:fs/promises");
+        const path = await import("node:path");
+        const filePath = path.join("/tmp", `aceceed-test-tts-${Date.now()}.wav`);
+        await fs.writeFile(filePath, "test");
+        return filePath;
+      }
+    };
+
+    const audioOutput = { playWav: async () => undefined };
+    const tutor = { id: "tutor", name: "Tutor", handle: async () => ({ text: "unused" }) };
+    const registry = new AgentRegistry([tutor], ["tutor"]);
+    const vision = { captureStill: async () => ({ image: Buffer.from(""), mimeType: "image/jpeg" }) };
+
+    const runtime = new AppRuntime(
+      config,
+      logger,
+      bus,
+      audioInput,
+      audioOutput,
+      stt,
+      tts,
+      registry,
+      vision,
+      []
+    );
+
+    await runtime.handlePttStart("api");
+    expect(events).toContain("tts:spoken");
+  });
+
+  it("continues when a detector throws", async () => {
+    const logger = pino({ level: "silent" });
+    const bus = new EventBus();
+
+    const audioInput = { record: async () => "/tmp/unused.wav" };
+    const stt = { transcribe: async () => "" };
+    const tts = { synthesize: async () => "/tmp/unused.wav" };
+    const audioOutput = { playWav: async () => undefined };
+    const llm = { generate: async () => "" };
+    const tutor = new TutorAgent(llm, "prompt");
+    const registry = new AgentRegistry([tutor], ["tutor"]);
+
+    const vision = { captureStill: async () => ({ image: Buffer.from("1234"), mimeType: "image/jpeg" }) };
+
+    const detectors: VisionDetector[] = [
+      { id: "thrower", detect: async () => { throw new Error("boom"); } },
+      { id: "ok", detect: async () => ({ paperPresent: true, motionScore: 0.3 }) }
+    ];
+
+    const runtime = new AppRuntime(
+      config,
+      logger,
+      bus,
+      audioInput,
+      audioOutput,
+      stt,
+      tts,
+      registry,
+      vision,
+      detectors
+    );
+
+    const result = await runtime.captureWithDetectors("api");
+    expect(result.detectors).toHaveLength(2);
+    expect(result.detectors[0]?.paperPresent).toBe(false);
   });
 
   it("reports llm, stt, and tts service readiness", () => {

@@ -23,4 +23,19 @@ export class AgentRegistry {
   list(): Agent[] {
     return Array.from(this.agents.values());
   }
+
+  listEnabled(): Agent[] {
+    const enabled: Agent[] = [];
+    for (const id of this.enabled) {
+      const agent = this.agents.get(id);
+      if (agent) {
+        enabled.push(agent);
+      }
+    }
+    return enabled;
+  }
+
+  firstEnabled(): Agent | null {
+    return this.listEnabled()[0] ?? null;
+  }
 }

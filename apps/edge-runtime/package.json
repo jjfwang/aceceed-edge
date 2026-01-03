@@ -9,7 +9,8 @@
     "build": "pnpm -C ../../packages/shared build && tsup src/main.ts --format esm --sourcemap",
     "start": "ACECEED_CONFIG=../../configs/prod.yaml node dist/main.js",
     "lint": "eslint src --ext .ts",
-    "test": "vitest run ../../tests/edge-runtime",
+    "test": "vitest run",
+    "test:cov": "vitest run --coverage ../../tests/edge-runtime",
     "format": "prettier src --check"
   },
   "dependencies": {

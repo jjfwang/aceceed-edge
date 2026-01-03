@@ -1,0 +1,106 @@
+syntax = "proto3";
+
+package assistant;
+
+message Empty {}
+message HealthRequest {}
+message HealthResponse {
+  bool ok = 1;
+  string message = 2;
+}
+
+message AudioBlob {
+  bytes pcm_s16le = 1;
+  int32 sample_rate_hz = 2;
+  int32 channels = 3;
+}
+
+message ImageBlob {
+  bytes data = 1;
+  string mime = 2;
+  int32 width = 3;
+  int32 height = 4;
+}
+
+service Ax8850Service {
+  rpc Health(HealthRequest) returns (HealthResponse);
+  rpc Transcribe(AudioBlob) returns (TranscribeResult);
+  rpc Generate(GenerateRequest) returns (stream GenerateChunk);
+}
+
+message TranscribeResult {
+  string text = 1;
+  string lang = 2;
+  float confidence = 3;
+}
+
+message GenerateRequest {
+  string prompt = 1;
+  int32 max_tokens = 2;
+  float temperature = 3;
+}
+
+message GenerateChunk {
+  string text = 1;
+  bool done = 2;
+}
+
+service VisionService {
+  rpc Health(HealthRequest) returns (HealthResponse);
+  rpc ClassifyPage(ImageBlob) returns (PageTypeResult);
+  rpc DetectTextRegions(ImageBlob) returns (Regions);
+  rpc Ocr(ImageWithRegions) returns (OcrResult);
+}
+
+message PageTypeResult {
+  string page_type = 1;
+  float confidence = 2;
+}
+
+message Region {
+  int32 x = 1;
+  int32 y = 2;
+  int32 w = 3;
+  int32 h = 4;
+  float confidence = 5;
+}
+
+message Regions {
+  repeated Region regions = 1;
+}
+
+message ImageWithRegions {
+  ImageBlob image = 1;
+  Regions regions = 2;
+}
+
+message OcrLine {
+  string text = 1;
+  float confidence = 2;
+  Region region = 3;
+}
+
+message OcrResult {
+  repeated OcrLine lines = 1;
+}
+
+service CameraService {
+  rpc Health(HealthRequest) returns (HealthResponse);
+  rpc CaptureStill(CaptureRequest) returns (ImageBlob);
+}
+
+message CaptureRequest {
+  int32 width = 1;
+  int32 height = 2;
+  string format = 3;
+}
+
+service TtsService {
+  rpc Health(HealthRequest) returns (HealthResponse);
+  rpc Synthesize(TtsRequest) returns (AudioBlob);
+}
+
+message TtsRequest {
+  string text = 1;
+  string lang = 2;
+}

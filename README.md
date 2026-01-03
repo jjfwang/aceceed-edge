@@ -1,65 +1,64 @@
-# Aceceed Edge
+# Local Multimodal Assistant (Pi 5 + AX8850 + Hailo-8L)
 
-Offline-first "desk tutor" stack for Raspberry Pi 5 (8GB). Camera + audio, local STT/TTS/LLM with optional cloud LLM via API key. Designed for education, privacy, and easy extension.
+Offline-first assistant for Raspberry Pi 5 (8GB) with PTT-only interaction, local STT/LLM on AX8850, vision on Hailo-8L, Pi Camera input, and Piper TTS. The repository runs in mock mode without hardware SDKs and is structured for drop-in device integrations.
 
-## Quick Start
-1) Install system dependencies (audio, camera, build tools):
-   ```bash
-   bash scripts/install_system_deps.sh
-   ```
-1.5) If using the Whisplay LCD, install the driver and reboot:
-   ```bash
-   bash scripts/install_whisplay.sh
-   sudo reboot
-   ```
-2) Download models (Whisper, Piper, LLaMA):
-   ```bash
-   bash scripts/setup_models.sh
-   ```
-   Optional (Chinese TTS voice):
-   ```bash
-   PIPER_ZH_URL=... PIPER_ZH_CONFIG_URL=... bash scripts/setup_models.sh
-   ```
-3) Install JS dependencies (workspace):
-   ```bash
-   pnpm install
-   ```
-4) Run the runtime in development mode (keyboard PTT):
-   ```bash
-   pnpm -C apps/edge-runtime dev
-   ```
-5) Build + run in production mode (API PTT):
-   ```bash
-   pnpm -C apps/edge-runtime build
-   pnpm -C apps/edge-runtime start
-   ```
-6) (Optional) Run tests with coverage thresholds (80%):
-   ```bash
-   pnpm -C apps/edge-runtime test -- --coverage
-   ```
+## Architecture
+- TypeScript Node.js orchestrator (`apps/edge-runtime`)
+- Python gRPC services for AX8850, Hailo vision, camera, and TTS (consolidated into `engine.py` files)
+- gRPC IPC with `proto/assistant.proto`
+- systemd unit files + install scripts
 
-## Whisplay LCD Quick Test
+## Mock Mode (any Linux)
+1) Generate gRPC stubs:
 ```bash
-echo "Hello Whisplay" | python3 scripts/whisplay_display.py
+make proto
 ```
-Full vendor test:
+2) Install dependencies:
 ```bash
-cd /opt/whisplay/example
-sudo bash run_test.sh
+make install
+```
+3) Run the mock stack (PTT via ENTER):
+```bash
+./deploy/scripts/run_mock.sh
 ```
 
-## Key Endpoints
-- `POST /v1/ptt/start` + `POST /v1/ptt/stop`
-- `POST /v1/camera/capture`
-- `GET /v1/events` (WebSocket)
+## Device Mode (Raspberry Pi)
+1) Install SDKs (placeholders):
+- Axera AXCL + LLM-8850 toolchain
+- HailoRT + vision models
+- Pi Camera stack (`libcamera`, `picamera2`)
+- Piper + voice models
 
-## LLM Backends
-- Local llama.cpp (Qwen3 1.7B or Llama 3): set `llm.mode: local` and `llm.local.backend: "llama.cpp"`, then run `llama-server`.
-- LLM-8850 Qwen3: run the vendor LLM-8850 service, then set `llm.mode: local`, `llm.local.backend: "llm8850"`, and configure `llm.local.llm8850.host`.
-- Cloud: set `llm.mode: cloud` and `OPENAI_API_KEY` (or custom env key).
+2) Set environment:
+```bash
+export DEVICE_MODE=1
+export PIPER_MODEL_PATH=/path/to/voice.onnx
+```
 
-## Multilingual Notes
-- For Chinese TTS, set `tts.piper.voicePathZh` in `configs/*.yaml` and install `fonts-noto-cjk` for the LCD.
+3) Install systemd services:
+```bash
+sudo ./deploy/scripts/install_systemd.sh
+```
 
-## Docs
-See `context.md` and `docs/architecture.md` for the full system overview.
+## Expected Flow
+- Press PTT → record audio
+- AX8850 STT transcribes
+- Route to vision pipeline if intent matches ("read this", "check my work", etc.)
+- Hailo detects text regions + OCR
+- Prompt is built from system prompts + OCR context
+- AX8850 LLM streams answer
+- Piper TTS speaks response
+
+## Development Notes
+- Mock mode uses `services-py/camera_service/assets/sample.jpg`.
+- Device-mode SDK integrations live behind TODOs in each service's `engine.py` file.
+- Health checks are available via `deploy/scripts/healthcheck.sh`.
+
+## Commands
+- `make proto` generate gRPC stubs for TS/Python
+- `make install` install Node + Python deps
+- `make run-mock` run full mock stack
+- `make run-device` run stack in device mode
+- `pnpm lint` run linter
+- `pnpm format` format code
+- `pnpm test` run tests

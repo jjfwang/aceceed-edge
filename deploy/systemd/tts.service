@@ -1,0 +1,15 @@
+[Unit]
+Description=TTS gRPC Service
+After=network.target
+
+[Service]
+Type=simple
+WorkingDirectory=/opt/assistant
+EnvironmentFile=-/etc/default/assistant
+Environment=PYTHONPATH=/opt/assistant/services-py:/opt/assistant/services-py/common/gen
+ExecStart=/usr/bin/python3 /opt/assistant/services-py/tts_service/server.py
+Restart=on-failure
+RestartSec=1
+
+[Install]
+WantedBy=multi-user.target

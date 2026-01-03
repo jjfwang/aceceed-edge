@@ -119,7 +119,9 @@ export interface RuntimeConfig {
   micIndicator: boolean;
   agents?: {
     enabled: string[];
+    default?: string;
   };
+  detectorTimeoutMs?: number;
   whisplay?: {
     buttonPin?: number;
     bounceMs?: number;
