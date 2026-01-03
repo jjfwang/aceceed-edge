@@ -67,23 +67,40 @@ class MockHailoVisionClient(HailoVisionClient):
 class SdkHailoVisionClient(HailoVisionClient):
     """
     The client for interacting with the actual Hailo-8L vision SDK.
+    NOTE: This is a temporary, functional mock. Replace the logic in each
+    method with the actual Hailo SDK implementation.
     """
     def __init__(self):
         # TODO: Initialize HailoRT SDK and load models here.
-        print("Initializing SdkHailoVisionClient...")
+        print("Initializing SdkHailoVisionClient (Functional Mock)...")
         pass
 
     def classify_page(self, pixels: bytes, width: int, height: int) -> Tuple[str, float]:
         # TODO: Implement page classification using HailoRT.
-        raise NotImplementedError("Hailo classification device mode not implemented")
+        print(f"MOCK-SDK: Simulating page classification for {width}x{height} image.")
+        time.sleep(0.1)
+        return "text_and_drawing", 0.85
 
     def detect_text_regions(self, pixels: bytes, width: int, height: int) -> List[Tuple[int, int, int, int, float]]:
         # TODO: Implement text region detection using HailoRT.
-        raise NotImplementedError("Hailo detector device mode not implemented")
+        print(f"MOCK-SDK: Simulating text region detection for {width}x{height} image.")
+        time.sleep(0.2)
+        # Return a more complex layout to simulate a mix of text and drawings
+        return [
+            (50, 50, 300, 50, 0.92),   # A line of text
+            (60, 120, 250, 30, 0.88),  # Another line of text
+            (100, 200, 150, 150, 0.75), # A region that could be a drawing
+        ]
 
     def ocr_regions(self, pixels: bytes, width: int, height: int, regions) -> List[Tuple[str, float, Tuple]]:
         # TODO: Implement OCR on regions using HailoRT.
-        raise NotImplementedError("Hailo OCR device mode not implemented")
+        print(f"MOCK-SDK: Simulating OCR for {len(regions)} regions.")
+        time.sleep(0.3)
+        # Only return OCR for the top two (text) regions
+        return [
+            ("How to calculate the area of a circle?", 0.91, regions[0]),
+            ("pi * r^2", 0.85, regions[1]),
+        ]
 
 
 def get_hailo_vision_client(device_mode: bool) -> HailoVisionClient:

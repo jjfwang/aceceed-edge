@@ -71,15 +71,19 @@ const llm =
       ? new Llm8850Client(config.llm, logger)
       : new LocalLlamaCppClient(config.llm, logger);
 
-const promptUrl = new URL("./llm/prompts/systemPrompt.txt", import.meta.url);
-const systemPrompt = await readTextFile(fileURLToPath(promptUrl));
-logger.info({ systemPrompt }, "Loaded system prompt");
+const systemPromptUrl = new URL("./llm/prompts/systemPrompt.txt", import.meta.url);
+const systemPrompt = await readTextFile(fileURLToPath(systemPromptUrl));
+logger.info("Loaded generic system prompt");
 
 const coachPromptUrl = new URL("./llm/prompts/coachPrompt.txt", import.meta.url);
 const coachPrompt = await readTextFile(fileURLToPath(coachPromptUrl));
-logger.info({ coachPrompt }, "Loaded coach prompt");
+logger.info("Loaded coach prompt");
 
-const tutorAgent = new TutorAgent(llm, systemPrompt, logger);
+const tutorPromptUrl = new URL("./llm/prompts/tutorPrompt.txt", import.meta.url);
+const tutorPrompt = await readTextFile(fileURLToPath(tutorPromptUrl));
+logger.info("Loaded tutor prompt");
+
+const tutorAgent = new TutorAgent(llm, tutorPrompt, logger);
 const coachAgent = new CoachAgent(llm, coachPrompt, logger);
 const enabledAgents = config.runtime.agents?.enabled ?? ["tutor"];
 const registry = new AgentRegistry([tutorAgent, coachAgent], enabledAgents);
