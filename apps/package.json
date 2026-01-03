@@ -6,7 +6,7 @@
   "main": "./dist/main.js",
   "scripts": {
     "dev": "pnpm -C ../packages/shared build && ACECEED_CONFIG=../configs/config.yaml NODE_ENV=development tsx src/main.ts",
-    "build": "pnpm -C ../packages/shared build && tsup src/main.ts --format esm --sourcemap",
+    "build": "pnpm -C ../packages/shared build && tsup",
     "start": "ACECEED_CONFIG=../configs/config.yaml node dist/main.js",
     "lint": "eslint src --ext .ts",
     "test": "vitest run --root .. --config vitest.config.ts ../tests",
