@@ -26,6 +26,12 @@
 - Plug the speakerphone in via USB, then locate its ALSA card name with `arecord -l` and `aplay -l`.
 - Set `audio.input.device` and `audio.output.device` to the KAYSHUDA card (example: `plughw:CARD=KAYSHUDA,DEV=0`).
 
+## Dev Mode (systemd)
+- Stop the production service to avoid port conflicts: `sudo systemctl stop aceceed-edge`.
+- Install the dev unit: `sudo cp deploy/systemd/aceceed-edge-dev.service /etc/systemd/system/`.
+- Enable and start: `sudo systemctl daemon-reload && sudo systemctl enable --now aceceed-edge-dev`.
+- Logs: `journalctl -u aceceed-edge-dev -f`.
+
 ## LLM-8850 M.2 HAT
 - Start the LLM-8850 Qwen3 service, then set `llm.local.backend: "llm8850"` and `llm.local.llm8850.host`.
 - If the LLM-8850 service binds to port 8000, change `api.port` for the runtime.

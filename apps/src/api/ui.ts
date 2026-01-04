@@ -55,7 +55,7 @@ function buildUiHtml(config: AppConfig): string {
       display: flex;
       align-items: center;
       justify-content: center;
-      padding: 16px;
+      padding: clamp(6px, 2vw, 16px);
       overflow: hidden;
     }
 
@@ -84,8 +84,8 @@ function buildUiHtml(config: AppConfig): string {
     .app {
       position: relative;
       z-index: 1;
-      width: min(960px, 100%);
-      height: min(560px, 100%);
+      width: min(960px, 100vw);
+      height: min(560px, 100vh);
       background: var(--panel);
       border-radius: 28px;
       padding: 20px 22px 22px;
@@ -303,7 +303,53 @@ function buildUiHtml(config: AppConfig): string {
       display: block;
     }
 
-    @media (max-width: 720px) {
+    @media (max-width: 520px), (max-height: 420px) {
+      body::before,
+      body::after {
+        opacity: 0.4;
+      }
+
+      .app {
+        width: 100vw;
+        height: 100vh;
+        border-radius: 0;
+        padding: 12px;
+        gap: 12px;
+      }
+
+      .logo {
+        font-size: 16px;
+        letter-spacing: 0.12em;
+      }
+
+      .subtitle {
+        font-size: 11px;
+      }
+
+      .chip {
+        padding: 6px 10px;
+        font-size: 10px;
+      }
+
+      .main {
+        gap: 12px;
+      }
+
+      .ptt-panel {
+        padding: 12px;
+      }
+
+      .ptt-button {
+        width: min(160px, 70%);
+        font-size: 16px;
+      }
+
+      .card-content {
+        font-size: 14px;
+      }
+    }
+
+    @media (max-width: 420px) {
       .app {
         height: 100%;
         border-radius: 20px;
@@ -318,12 +364,18 @@ function buildUiHtml(config: AppConfig): string {
       }
 
       .ptt-button {
-        width: min(200px, 70%);
+        width: min(180px, 70%);
         font-size: 18px;
       }
+    }
 
-      .cards {
-        grid-template-rows: 1fr 1fr;
+    @media (max-height: 360px) {
+      .main {
+        grid-template-columns: 1fr 1.1fr;
+      }
+
+      .ptt-hint {
+        display: none;
       }
     }
   </style>
@@ -481,21 +533,64 @@ function buildUiHtml(config: AppConfig): string {
         }
       }
 
-      function onPointerDown(event) {
-        if (mode !== "hold" || state.active) {
+      let holdActive = false;
+
+      function startHold(event) {
+        if (mode !== "hold" || state.active || holdActive) {
+          return false;
+        }
+        holdActive = true;
+        if (event && typeof event.preventDefault === "function") {
+          event.preventDefault();
+        }
+        sendStart();
+        return true;
+      }
+
+      function endHold() {
+        if (mode !== "hold" || !holdActive) {
           return;
         }
-        event.preventDefault();
-        sendStart();
+        holdActive = false;
+        sendStop();
+      }
+
+      function onPointerDown(event) {
+        if (!startHold(event)) {
+          return;
+        }
         window.addEventListener("pointerup", onPointerUp, { once: true });
         window.addEventListener("pointercancel", onPointerUp, { once: true });
       }
 
       function onPointerUp() {
-        if (mode !== "hold") {
+        endHold();
+      }
+
+      function onTouchStart(event) {
+        if (!startHold(event)) {
           return;
         }
-        sendStop();
+        window.addEventListener("touchend", onTouchEnd, { once: true });
+        window.addEventListener("touchcancel", onTouchEnd, { once: true });
+      }
+
+      function onTouchEnd() {
+        endHold();
+      }
+
+      function onMouseDown(event) {
+        if (event.button !== 0) {
+          return;
+        }
+        if (!startHold(event)) {
+          return;
+        }
+        window.addEventListener("mouseup", onMouseUp, { once: true });
+      }
+
+      function onMouseUp() {
+        endHold();
       }
 
       function onClick() {
@@ -513,6 +608,8 @@ function buildUiHtml(config: AppConfig): string {
 
       function attachEvents() {
         pttButton.addEventListener("pointerdown", onPointerDown);
+        pttButton.addEventListener("touchstart", onTouchStart, { passive: false });
+        pttButton.addEventListener("mousedown", onMouseDown);
         pttButton.addEventListener("click", onClick);
       }
 

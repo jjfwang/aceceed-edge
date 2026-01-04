@@ -1,0 +1,17 @@
+[Unit]
+Description=Aceceed Edge Runtime (Dev)
+After=network.target
+
+[Service]
+Type=simple
+WorkingDirectory=/home/pi/aceceed-edge
+Environment=NODE_ENV=development
+Environment=ACECEED_CONFIG=/home/pi/aceceed-edge/configs/config.yaml
+ExecStart=/usr/bin/env pnpm -C /home/pi/aceceed-edge/apps dev
+Restart=on-failure
+RestartSec=2
+User=pi
+Group=pi
+
+[Install]
+WantedBy=multi-user.target
