@@ -1,6 +1,6 @@
 import { spawn } from "node:child_process";
 import path from "node:path";
-import { AppConfig } from "@aceceed/shared";
+import type { AppConfig } from "@aceceed/shared";
 import { createLogger } from "../common/logging.js";
 import { EventBus } from "./eventBus.js";
 import { findPyScript } from "../common/utils.js";
