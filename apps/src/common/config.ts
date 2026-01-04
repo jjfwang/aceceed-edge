@@ -9,6 +9,52 @@ const defaultConfigCandidates = [
   path.resolve(process.cwd(), "../configs/config.yaml")
 ];
 
+function parseEnvFile(raw: string): Record<string, string> {
+  const entries: Record<string, string> = {};
+  for (const line of raw.split(/\r?\n/)) {
+    const trimmed = line.trim();
+    if (!trimmed || trimmed.startsWith("#")) {
+      continue;
+    }
+    const separatorIndex = trimmed.indexOf("=");
+    if (separatorIndex <= 0) {
+      continue;
+    }
+    const key = trimmed.slice(0, separatorIndex).trim();
+    let value = trimmed.slice(separatorIndex + 1).trim();
+    if (
+      (value.startsWith("\"") && value.endsWith("\"")) ||
+      (value.startsWith("'") && value.endsWith("'"))
+    ) {
+      value = value.slice(1, -1);
+    }
+    entries[key] = value;
+  }
+  return entries;
+}
+
+async function loadDotEnv(configPath: string): Promise<void> {
+  const candidates = [
+    path.resolve(process.cwd(), ".env"),
+    path.resolve(process.cwd(), "../.env"),
+    path.resolve(path.dirname(configPath), ".env")
+  ];
+  for (const candidate of candidates) {
+    try {
+      const raw = await fs.readFile(candidate, "utf-8");
+      const entries = parseEnvFile(raw);
+      for (const [key, value] of Object.entries(entries)) {
+        if (process.env[key] === undefined) {
+          process.env[key] = value;
+        }
+      }
+      return;
+    } catch {
+      continue;
+    }
+  }
+}
+
 async function resolveConfigPath(): Promise<string> {
   const explicit = process.env.ACECEED_CONFIG;
   if (explicit) {
@@ -123,6 +169,7 @@ function applyEnvOverrides(config: AppConfig): AppConfig {
 
 export async function loadConfig(): Promise<AppConfig> {
   const configPath = await resolveConfigPath();
+  await loadDotEnv(configPath);
   const raw = await fs.readFile(configPath, "utf-8");
   const parsed = YAML.parse(raw) as AppConfig;
   const withEnv = applyEnvOverrides(parsed);
