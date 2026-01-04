@@ -534,6 +534,7 @@ function buildUiHtml(config: AppConfig): string {
       }
 
       let holdActive = false;
+      let ignoreClickUntil = 0;
 
       function startHold(event) {
         if (mode !== "hold" || state.active || holdActive) {
@@ -552,6 +553,7 @@ function buildUiHtml(config: AppConfig): string {
           return;
         }
         holdActive = false;
+        ignoreClickUntil = Date.now() + 500;
         sendStop();
       }
 
@@ -594,7 +596,17 @@ function buildUiHtml(config: AppConfig): string {
       }
 
       function onClick() {
-        if (mode !== "toggle") {
+        if (mode === "toggle") {
+          if (!state.active) {
+            sendStart();
+            return;
+          }
+          if (state.listening) {
+            sendStop();
+          }
+          return;
+        }
+        if (Date.now() < ignoreClickUntil) {
           return;
         }
         if (!state.active) {
