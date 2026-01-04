@@ -209,7 +209,9 @@ function buildUiHtml(config: AppConfig): string {
       box-shadow: 0 12px 30px rgba(239, 140, 47, 0.35);
       cursor: pointer;
       transition: transform 0.2s ease, box-shadow 0.2s ease;
-      touch-action: none;
+      touch-action: manipulation;
+      user-select: none;
+      -webkit-tap-highlight-color: transparent;
     }
 
     .ptt-button:active,
@@ -397,7 +399,7 @@ function buildUiHtml(config: AppConfig): string {
     </header>
     <section class="main">
       <div class="ptt-panel">
-        <button class="ptt-button" id="pttButton">Hold to Talk</button>
+        <button class="ptt-button" id="pttButton" type="button">Hold to Talk</button>
         <div class="status-text" id="statusText">Ready</div>
         <div class="ptt-hint" id="pttHint">Press and hold, release to send.</div>
         <div class="error" id="errorBox"></div>
@@ -561,6 +563,13 @@ function buildUiHtml(config: AppConfig): string {
         if (!startHold(event)) {
           return;
         }
+        if (pttButton && typeof pttButton.setPointerCapture === "function") {
+          try {
+            pttButton.setPointerCapture(event.pointerId);
+          } catch {
+            // Ignore capture errors on older browsers.
+          }
+        }
         window.addEventListener("pointerup", onPointerUp, { once: true });
         window.addEventListener("pointercancel", onPointerUp, { once: true });
       }
@@ -619,9 +628,21 @@ function buildUiHtml(config: AppConfig): string {
       }
 
       function attachEvents() {
-        pttButton.addEventListener("pointerdown", onPointerDown);
+        pttButton.addEventListener("pointerdown", onPointerDown, { passive: false });
+        pttButton.addEventListener("pointerup", onPointerUp);
+        pttButton.addEventListener("pointercancel", onPointerUp);
         pttButton.addEventListener("touchstart", onTouchStart, { passive: false });
+        pttButton.addEventListener("touchend", onTouchEnd);
+        pttButton.addEventListener("touchcancel", onTouchEnd);
+        pttButton.addEventListener("touchmove", (event) => {
+          if (mode === "hold") {
+            event.preventDefault();
+          }
+        }, { passive: false });
         pttButton.addEventListener("mousedown", onMouseDown);
+        pttButton.addEventListener("mouseup", onMouseUp);
+        pttButton.addEventListener("mouseleave", onMouseUp);
+        pttButton.addEventListener("contextmenu", (event) => event.preventDefault());
         pttButton.addEventListener("click", onClick);
       }
 
