@@ -1,6 +1,6 @@
 import type { DetectorRunResult } from "@aceceed/shared";
 
-export type EventSource = "api" | "keyboard" | "whisplay" | "system";
+export type EventSource = "api" | "keyboard" | "mhs-display" | "system";
 
 export type AppEvent =
   | { type: "ptt:start"; source: EventSource }

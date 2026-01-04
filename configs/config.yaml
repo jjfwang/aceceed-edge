@@ -103,18 +103,18 @@ vision:
 audio:
   input:
     backend: "node-record-lpcm16"
-    device: "plughw:2,0"
+    device: "plughw:CARD=KAYSHUDA,DEV=0"
     sampleRate: 16000
     channels: 1
     recordSeconds: 4
     arecordPath: "arecord"
   output:
     backend: "aplay"
-    device: "sysdefault:CARD=wm8960soundcard"
+    device: "plughw:CARD=KAYSHUDA,DEV=0"
     aplayPath: "aplay"
 
 runtime:
-  pushToTalkMode: "whisplay"
+  pushToTalkMode: "mhs-display"
   cameraIndicator: true
   micIndicator: true
   agents:
@@ -122,10 +122,9 @@ runtime:
       - "tutor"
     # default: "tutor"
   # detectorTimeoutMs: 1500
-  whisplay:
+  ui:
     mode: "hold"
-    buttonPin: 11
-    bounceMs: 50
+    title: "Aceceed Edge"
   vision:
     triggerKeywords:
       - "read"

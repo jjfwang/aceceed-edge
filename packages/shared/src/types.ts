@@ -121,7 +121,7 @@ export interface AudioConfig {
 }
 
 export interface RuntimeConfig {
-  pushToTalkMode: "keyboard" | "api" | "whisplay";
+  pushToTalkMode: "keyboard" | "api" | "mhs-display";
   cameraIndicator: boolean;
   micIndicator: boolean;
   agents?: {
@@ -129,10 +129,9 @@ export interface RuntimeConfig {
     default?: string;
   };
   detectorTimeoutMs?: number;
-  whisplay?: {
-    buttonPin?: number;
-    bounceMs?: number;
+  ui?: {
     mode?: "hold" | "toggle";
+    title?: string;
   };
   vision?: {
     alwaysCapture?: boolean;

@@ -19,8 +19,7 @@ import { VisionCapture } from "./vision/capture.js";
 import { SimpleActivityDetector } from "./vision/detectors/simpleActivity.js";
 import { HailoStubDetector } from "./vision/detectors/hailoStub.js";
 import { AppRuntime } from "./runtime/appRuntime.js";
-import { startWhisplayPtt } from "./runtime/whisplayPtt.js";
-import { startWhisplayDisplay } from "./runtime/whisplayDisplay.js";
+import { startMhsDisplayPtt } from "./runtime/mhsDisplayPtt.js";
 import { createServer } from "./api/server.js";
 import { LocalRagRetriever } from "./rag/localStore.js";
 import { VisionOcr } from "./vision/ocr.js";
@@ -121,41 +120,73 @@ if (config.runtime.pushToTalkMode === "keyboard") {
 const server = createServer(config, runtime, bus);
 
 try {
+
   await server.listen({ host: config.api.host, port: config.api.port });
+
   logger.info(`API listening on http://${config.api.host}:${config.api.port}`);
 
-  let stopWhisplay: (() => void) | undefined;
-  let stopDisplay: (() => void) | undefined;
-  if (config.runtime.pushToTalkMode === "whisplay") {
-    stopWhisplay = await startWhisplayPtt(bus, config, logger);
-    stopDisplay = startWhisplayDisplay(bus, config, logger);
+
+
+  let stopPtt: (() => void) | undefined;
+
+  if (config.runtime.pushToTalkMode === "mhs-display") {
+
+    stopPtt = await startMhsDisplayPtt(bus, config, logger);
+
   }
 
+
+
   let shuttingDown = false;
+
   const shutdown = async (signal: string) => {
+
     if (shuttingDown) {
+
       return;
+
     }
+
     shuttingDown = true;
+
     logger.info({ signal }, "Shutting down");
+
     try {
-      stopWhisplay?.();
-      stopDisplay?.();
+
+      stopPtt?.();
+
       await server.close();
+
     } catch (err) {
+
       logger.error({ err }, "Shutdown failed");
+
     } finally {
+
       process.exit(0);
+
     }
+
   };
 
+
+
   process.on("SIGINT", () => {
+
     void shutdown("SIGINT");
+
   });
+
   process.on("SIGTERM", () => {
+
     void shutdown("SIGTERM");
+
   });
+
 } catch (err) {
+
   logger.error({ err }, "Failed to start API server");
+
   process.exit(1);
+
 }

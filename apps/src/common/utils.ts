@@ -72,3 +72,15 @@ export async function safeUnlink(filePath: string): Promise<void> {
     }
   }
 }
+
+export async function findPyScript(...scriptPaths: string[]): Promise<string | undefined> {
+  for (const scriptPath of scriptPaths) {
+    try {
+      await fs.access(scriptPath);
+      return scriptPath;
+    } catch {
+      // ignore
+    }
+  }
+  return undefined;
+}
