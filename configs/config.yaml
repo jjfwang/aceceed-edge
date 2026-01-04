@@ -103,14 +103,14 @@ vision:
 audio:
   input:
     backend: "node-record-lpcm16"
-    device: "plughw:CARD=SP300U,DEV=0"
+    device: "plughw:0,0"
     sampleRate: 16000
     channels: 1
     recordSeconds: 4
     arecordPath: "arecord"
   output:
     backend: "aplay"
-    device: "plughw:CARD=SP300U,DEV=0"
+    device: "plughw:0,0"
     aplayPath: "aplay"
 
 runtime:
