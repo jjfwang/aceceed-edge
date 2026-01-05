@@ -5,6 +5,8 @@ import type { AudioConfig } from "../../packages/shared/src/types.js";
 const isLinux = process.platform === "linux";
 const describeLinux = isLinux ? describe : describe.skip;
 
+process.env.ACECEED_DISABLE_NODE_RECORD = "1";
+
 vi.mock("node-record-lpcm16", () => {
   class SimpleEmitter {
     private listeners: Record<string, Array<(...args: any[]) => void>> = {};
@@ -48,7 +50,7 @@ vi.mock("node-record-lpcm16", () => {
       };
     }
   };
-});
+}, { virtual: true });
 
 vi.mock("../apps/src/common/utils.js", () => {
   const runCommand = vi.fn(async () => ({ stdout: "", stderr: "" }));
@@ -56,9 +58,15 @@ vi.mock("../apps/src/common/utils.js", () => {
   const sleep = vi.fn(async () => {});
   return { runCommand, tempPath, sleep };
 });
+vi.mock("../apps/src/audio/deviceDiscovery.js", () => {
+  const discoverInputDevice = vi.fn(async () => "plughw:1,0");
+  const discoverOutputDevice = vi.fn();
+  return { discoverInputDevice, discoverOutputDevice };
+});
 
 let AudioInput: typeof import("../apps/src/audio/input.js").AudioInput;
 let runCommand: typeof import("../apps/src/common/utils.js").runCommand;
+let discoverInputDevice: typeof import("../apps/src/audio/deviceDiscovery.js").discoverInputDevice;
 
 const baseConfig: AudioConfig = {
   input: {
@@ -87,6 +95,7 @@ describeLinux("AudioInput", () => {
     }
     ({ AudioInput } = await import("../apps/src/audio/input.js"));
     ({ runCommand } = await import("../apps/src/common/utils.js"));
+    ({ discoverInputDevice } = await import("../apps/src/audio/deviceDiscovery.js"));
   });
 
   beforeEach(() => {
@@ -133,8 +142,7 @@ describeLinux("AudioInput", () => {
     expect(statSpy).toHaveBeenCalledWith("/tmp/aceceed-input.wav");
   });
 
-  it("records using node-record-lpcm16 backend", async () => {
-    const writeSpy = vi.spyOn(fs, "writeFile").mockResolvedValue();
+  it("falls back to arecord when node-record-lpcm16 is disabled", async () => {
     const config = {
       ...baseConfig,
       input: {
@@ -147,8 +155,24 @@ describeLinux("AudioInput", () => {
     const outputPath = await input.record({ durationSec: 1 });
 
     expect(outputPath).toBe("/tmp/aceceed-input.wav");
-    expect(writeSpy).toHaveBeenCalled();
-    const written = writeSpy.mock.calls[0]?.[1] as Buffer;
-    expect(written.length).toBeGreaterThanOrEqual(44);
+    expect(runCommand).toHaveBeenCalled();
+  });
+
+  it("discovering input device works when none provided", async () => {
+    const config = {
+      ...baseConfig,
+      input: {
+        backend: "arecord",
+        sampleRate: 16000,
+        channels: 1,
+        recordSeconds: 4,
+        arecordPath: "arecord"
+      }
+    } as AudioConfig;
+
+    const input = new AudioInput(config, logger as unknown as Console);
+    await input.record({ durationSec: 1 });
+
+    expect(discoverInputDevice).toHaveBeenCalled();
   });
 });

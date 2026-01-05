@@ -102,19 +102,21 @@ vision:
 
 audio:
   input:
-    backend: "node-record-lpcm16"
-    device: "plughw:0,0"
+    backend: "auto"
+    # device: "plughw:0,0" # optional override
     sampleRate: 16000
     channels: 1
     recordSeconds: 4
     arecordPath: "arecord"
   output:
-    backend: "aplay"
-    device: "plughw:0,0"
+    backend: "auto"
+    # device: "plughw:0,0" # optional override
     aplayPath: "aplay"
 
 runtime:
-  pushToTalkMode: "api"
+  pushToTalkMode: "auto"
+  display:
+    preferred: "auto"
   cameraIndicator: true
   micIndicator: true
   agents:

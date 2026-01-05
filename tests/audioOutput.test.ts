@@ -5,9 +5,15 @@ vi.mock("../apps/src/common/utils.js", () => {
   const runCommand = vi.fn(async () => ({ stdout: "", stderr: "" }));
   return { runCommand };
 });
+vi.mock("../apps/src/audio/deviceDiscovery.js", () => {
+  const discoverOutputDevice = vi.fn(async () => "plughw:0,1");
+  const discoverInputDevice = vi.fn();
+  return { discoverOutputDevice, discoverInputDevice };
+});
 
 const { AudioOutput } = await import("../apps/src/audio/output.js");
 const { runCommand } = await import("../apps/src/common/utils.js");
+const { discoverOutputDevice } = await import("../apps/src/audio/deviceDiscovery.js");
 
 const baseConfig: AudioConfig = {
   input: {
@@ -66,7 +72,27 @@ describe("AudioOutput", () => {
     const output = new AudioOutput(baseConfig, logger as unknown as Console);
 
     await expect(output.playWav("/tmp/test.wav")).rejects.toThrow(
-      "Audio playback failed. Check output device 'default'."
+      "Audio playback failed. Check output device 'default'. boom"
     );
+  });
+
+  it("auto backend probes output device when missing", async () => {
+    const config = {
+      ...baseConfig,
+      output: {
+        backend: "auto",
+        aplayPath: "aplay"
+      }
+    } as AudioConfig;
+
+    const output = new AudioOutput(config, logger as unknown as Console);
+    await output.playWav("/tmp/test.wav");
+
+    expect(discoverOutputDevice).toHaveBeenCalled();
+    expect(runCommand).toHaveBeenCalledWith("aplay", [
+      "-D",
+      "plughw:0,1",
+      "/tmp/test.wav"
+    ]);
   });
 });

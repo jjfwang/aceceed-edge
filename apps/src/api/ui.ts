@@ -27,19 +27,20 @@ function buildUiHtml(config: AppConfig): string {
   <title>${title}</title>
   <style>
     :root {
-      --bg: #f7f1e0;
-      --bg-ink: #151515;
-      --panel: #fff7e8;
-      --panel-shadow: rgba(17, 17, 17, 0.15);
-      --accent: #ef8c2f;
-      --accent-dark: #d46a1f;
-      --accent-soft: #f7c48c;
-      --teal: #1b8e8a;
-      --teal-dark: #136d69;
-      --danger: #d04d33;
-      --muted: #5f6068;
-      --line: rgba(21, 21, 21, 0.1);
-      --ring: rgba(239, 140, 47, 0.35);
+      --bg: #0c111b;
+      --bg-secondary: #0f1626;
+      --panel: rgba(255, 255, 255, 0.04);
+      --panel-strong: rgba(255, 255, 255, 0.08);
+      --panel-border: rgba(255, 255, 255, 0.08);
+      --glow: rgba(103, 215, 255, 0.22);
+      --ink: #e8edf7;
+      --muted: #9aa7c7;
+      --accent: #6ee7ff;
+      --accent-strong: #46c2ff;
+      --accent-soft: rgba(110, 231, 255, 0.14);
+      --warning: #f2c94c;
+      --danger: #ff6b6b;
+      --card-shadow: 0 18px 50px rgba(0, 0, 0, 0.35);
     }
 
     * {
@@ -49,66 +50,61 @@ function buildUiHtml(config: AppConfig): string {
     body {
       margin: 0;
       min-height: 100vh;
-      font-family: "Fira Sans", "Noto Sans", "DejaVu Sans", "Liberation Sans", sans-serif;
-      color: var(--bg-ink);
-      background: radial-gradient(circle at top left, #fff8ef 0%, #f7f1e0 55%, #f2e2c5 100%);
+      font-family: "Inter", "Fira Sans", "Noto Sans", "DejaVu Sans", sans-serif;
+      color: var(--ink);
+      background: radial-gradient(circle at 20% 20%, rgba(110, 231, 255, 0.12), transparent 26%),
+        radial-gradient(circle at 80% 0%, rgba(70, 194, 255, 0.12), transparent 24%),
+        radial-gradient(circle at 50% 80%, rgba(255, 107, 107, 0.08), transparent 30%),
+        linear-gradient(145deg, #0b1020 0%, #0f182b 38%, #0a0f1b 100%);
       display: flex;
       align-items: center;
       justify-content: center;
-      padding: clamp(6px, 2vw, 16px);
-      overflow: hidden;
-    }
-
-    body::before,
-    body::after {
-      content: "";
-      position: absolute;
-      width: 320px;
-      height: 320px;
-      border-radius: 50%;
-      background: radial-gradient(circle, rgba(27, 142, 138, 0.12), transparent 70%);
-      z-index: 0;
-    }
-
-    body::before {
-      top: -120px;
-      left: -80px;
-    }
-
-    body::after {
-      bottom: -160px;
-      right: -120px;
-      background: radial-gradient(circle, rgba(239, 140, 47, 0.15), transparent 70%);
+      padding: clamp(8px, 2vw, 20px);
     }
 
     .app {
       position: relative;
-      z-index: 1;
-      width: min(960px, 100vw);
-      height: min(560px, 100vh);
-      background: var(--panel);
+      width: min(1080px, 100vw);
+      height: min(660px, 100vh);
       border-radius: 28px;
-      padding: 20px 22px 22px;
-      box-shadow: 0 18px 40px var(--panel-shadow);
+      padding: 20px;
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.02));
+      border: 1px solid var(--panel-border);
+      box-shadow: var(--card-shadow);
       display: grid;
       grid-template-rows: auto 1fr;
-      gap: 18px;
-      animation: rise 0.6s ease-out;
-    }
-
-    @keyframes rise {
-      from { opacity: 0; transform: translateY(12px); }
-      to { opacity: 1; transform: translateY(0); }
+      gap: 16px;
+      backdrop-filter: blur(10px);
     }
 
     .top {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      gap: 16px;
+      gap: 14px;
     }
 
     .brand {
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+    }
+
+    .logo-mark {
+      width: 38px;
+      height: 38px;
+      border-radius: 12px;
+      background: radial-gradient(circle at 30% 30%, #c6f6ff, #46c2ff);
+      box-shadow: 0 12px 30px var(--glow);
+      display: grid;
+      place-items: center;
+      font-weight: 800;
+      color: #0b1020;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+
+    .logo-text {
       display: flex;
       flex-direction: column;
       gap: 4px;
@@ -116,7 +112,7 @@ function buildUiHtml(config: AppConfig): string {
 
     .logo {
       font-size: 20px;
-      letter-spacing: 0.18em;
+      letter-spacing: 0.14em;
       font-weight: 700;
       text-transform: uppercase;
     }
@@ -125,147 +121,174 @@ function buildUiHtml(config: AppConfig): string {
       font-size: 13px;
       color: var(--muted);
       text-transform: uppercase;
-      letter-spacing: 0.12em;
+      letter-spacing: 0.1em;
     }
 
     .status-row {
       display: flex;
       align-items: center;
       gap: 10px;
+      flex-wrap: wrap;
     }
 
     .chip {
       display: inline-flex;
       align-items: center;
-      gap: 8px;
-      padding: 8px 12px;
+      gap: 10px;
+      padding: 10px 14px;
       border-radius: 999px;
-      background: #fff2df;
-      border: 1px solid var(--line);
+      background: var(--panel);
+      border: 1px solid var(--panel-border);
       font-size: 12px;
-      font-weight: 600;
+      font-weight: 700;
       text-transform: uppercase;
       letter-spacing: 0.08em;
-    }
-
-    .chip--ghost {
-      background: transparent;
-      color: var(--muted);
+      color: var(--ink);
     }
 
     .chip .dot {
       width: 10px;
       height: 10px;
       border-radius: 50%;
-      background: var(--teal);
-      box-shadow: 0 0 0 3px rgba(27, 142, 138, 0.2);
+      background: var(--accent);
+      box-shadow: 0 0 0 3px var(--accent-soft);
     }
 
     .chip.listening .dot {
-      background: var(--accent);
-      box-shadow: 0 0 0 4px var(--ring);
+      background: var(--warning);
+      box-shadow: 0 0 0 4px rgba(242, 201, 76, 0.2);
     }
 
     .chip.processing .dot {
-      background: #e9b34f;
-      box-shadow: 0 0 0 4px rgba(233, 179, 79, 0.25);
+      background: var(--accent-strong);
+      box-shadow: 0 0 0 4px rgba(70, 194, 255, 0.24);
     }
 
     .chip.error .dot {
       background: var(--danger);
-      box-shadow: 0 0 0 4px rgba(208, 77, 51, 0.2);
+      box-shadow: 0 0 0 4px rgba(255, 107, 107, 0.24);
     }
 
     .main {
       display: grid;
-      grid-template-columns: 1fr 1.4fr;
-      gap: 18px;
+      grid-template-columns: minmax(260px, 0.9fr) 1.4fr;
+      gap: 16px;
       height: 100%;
     }
 
-    .ptt-panel {
-      background: #fffaf1;
-      border: 1px solid var(--line);
-      border-radius: 22px;
-      padding: 18px;
+    .panel {
+      background: var(--panel);
+      border: 1px solid var(--panel-border);
+      border-radius: 20px;
+      padding: 16px;
       display: flex;
       flex-direction: column;
-      align-items: center;
-      justify-content: center;
       gap: 14px;
+      box-shadow: var(--card-shadow);
+      min-height: 0;
+    }
+
+    .panel-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .panel-title {
+      font-size: 13px;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: var(--muted);
+      margin: 0;
     }
 
     .ptt-button {
-      width: min(220px, 80%);
+      width: 100%;
       aspect-ratio: 1 / 1;
-      border-radius: 50%;
-      border: none;
-      background: radial-gradient(circle at top, var(--accent-soft), var(--accent));
-      color: #2b1e14;
-      font-size: 22px;
-      font-weight: 700;
+      border-radius: 18px;
+      border: 1px solid var(--panel-border);
+      background: radial-gradient(circle at 30% 30%, var(--accent-strong), #145273);
+      color: #0b1020;
+      font-size: 20px;
+      font-weight: 800;
       text-transform: uppercase;
       letter-spacing: 0.08em;
-      box-shadow: 0 12px 30px rgba(239, 140, 47, 0.35);
       cursor: pointer;
-      transition: transform 0.2s ease, box-shadow 0.2s ease;
+      transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
       touch-action: manipulation;
       user-select: none;
       -webkit-tap-highlight-color: transparent;
-    }
-
-    .ptt-button:active,
-    .ptt-button.listening {
-      transform: translateY(4px) scale(0.98);
-      box-shadow: 0 6px 18px rgba(239, 140, 47, 0.3);
+      box-shadow: 0 14px 40px rgba(70, 194, 255, 0.35);
     }
 
     .ptt-button.listening {
       animation: pulse 1.1s ease-in-out infinite;
+      border-color: rgba(242, 201, 76, 0.6);
+    }
+
+    .ptt-button:active {
+      transform: translateY(4px) scale(0.99);
     }
 
     @keyframes pulse {
-      0% { box-shadow: 0 0 0 0 rgba(239, 140, 47, 0.35); }
-      70% { box-shadow: 0 0 0 18px rgba(239, 140, 47, 0); }
-      100% { box-shadow: 0 0 0 0 rgba(239, 140, 47, 0); }
+      0% { box-shadow: 0 0 0 0 rgba(70, 194, 255, 0.35); }
+      70% { box-shadow: 0 0 0 18px rgba(70, 194, 255, 0); }
+      100% { box-shadow: 0 0 0 0 rgba(70, 194, 255, 0); }
+    }
+
+    .status-text {
+      font-size: 15px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      color: var(--ink);
     }
 
     .ptt-hint {
-      text-align: center;
       font-size: 13px;
       color: var(--muted);
     }
 
-    .status-text {
-      font-size: 14px;
-      font-weight: 600;
+    .error {
+      display: none;
+      margin-top: -6px;
+      padding: 10px 12px;
+      border-radius: 14px;
+      background: rgba(255, 107, 107, 0.14);
+      color: var(--danger);
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
       text-transform: uppercase;
-      letter-spacing: 0.12em;
-      color: var(--teal-dark);
+    }
+
+    .error.visible {
+      display: block;
     }
 
     .cards {
       display: grid;
       grid-template-rows: 1fr 1fr;
-      gap: 14px;
+      gap: 12px;
       height: 100%;
+      min-height: 0;
     }
 
     .card {
-      background: #ffffff;
-      border-radius: 18px;
-      border: 1px solid var(--line);
+      background: var(--panel-strong);
+      border-radius: 16px;
+      border: 1px solid var(--panel-border);
       padding: 14px 16px;
       display: flex;
       flex-direction: column;
-      gap: 8px;
-      box-shadow: 0 8px 16px rgba(17, 17, 17, 0.08);
+      gap: 10px;
+      box-shadow: 0 10px 28px rgba(0, 0, 0, 0.22);
       min-height: 0;
     }
 
     .card h2 {
       margin: 0;
-      font-size: 13px;
+      font-size: 12px;
       text-transform: uppercase;
       letter-spacing: 0.12em;
       color: var(--muted);
@@ -273,111 +296,63 @@ function buildUiHtml(config: AppConfig): string {
 
     .card-content {
       font-size: 16px;
-      line-height: 1.4;
+      line-height: 1.5;
+      color: var(--ink);
       overflow: auto;
       scrollbar-width: thin;
-      scrollbar-color: rgba(21, 21, 21, 0.2) transparent;
+      scrollbar-color: rgba(255, 255, 255, 0.25) transparent;
     }
 
     .card-content::-webkit-scrollbar {
-      width: 6px;
+      width: 8px;
     }
 
     .card-content::-webkit-scrollbar-thumb {
-      background: rgba(21, 21, 21, 0.2);
+      background: rgba(255, 255, 255, 0.25);
       border-radius: 999px;
     }
 
-    .error {
-      display: none;
-      margin-top: 6px;
-      padding: 8px 10px;
-      border-radius: 10px;
-      background: rgba(208, 77, 51, 0.12);
-      color: var(--danger);
-      font-size: 12px;
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
-    }
-
-    .error.visible {
-      display: block;
-    }
-
-    @media (max-width: 520px), (max-height: 420px) {
-      body::before,
-      body::after {
-        opacity: 0.4;
-      }
-
+    @media (max-width: 720px) {
       .app {
         width: 100vw;
         height: 100vh;
         border-radius: 0;
         padding: 12px;
-        gap: 12px;
       }
 
       .logo {
-        font-size: 16px;
-        letter-spacing: 0.12em;
+        font-size: 17px;
       }
 
       .subtitle {
         font-size: 11px;
       }
 
-      .chip {
-        padding: 6px 10px;
-        font-size: 10px;
-      }
-
       .main {
-        gap: 12px;
-      }
-
-      .ptt-panel {
-        padding: 12px;
+        grid-template-columns: 1fr;
       }
 
       .ptt-button {
-        width: min(160px, 70%);
-        font-size: 16px;
+        aspect-ratio: auto;
+        min-height: 120px;
       }
 
-      .card-content {
-        font-size: 14px;
+      .cards {
+        grid-template-rows: repeat(2, minmax(180px, 1fr));
       }
     }
 
-    @media (max-width: 420px) {
+    @media (max-height: 540px) {
       .app {
         height: 100%;
-        border-radius: 20px;
       }
 
       .main {
         grid-template-columns: 1fr;
       }
 
-      .ptt-panel {
-        padding: 14px;
-      }
-
       .ptt-button {
-        width: min(180px, 70%);
-        font-size: 18px;
-      }
-    }
-
-    @media (max-height: 360px) {
-      .main {
-        grid-template-columns: 1fr 1.1fr;
-      }
-
-      .ptt-hint {
-        display: none;
+        min-height: 110px;
       }
     }
   </style>
@@ -386,8 +361,11 @@ function buildUiHtml(config: AppConfig): string {
   <div class="app">
     <header class="top">
       <div class="brand">
-        <div class="logo">${title}</div>
-        <div class="subtitle">Touch PTT Console</div>
+        <div class="logo-mark">AE</div>
+        <div class="logo-text">
+          <div class="logo">${title}</div>
+          <div class="subtitle">Touch Console</div>
+        </div>
       </div>
       <div class="status-row">
         <div class="chip" id="statusChip">
@@ -398,7 +376,11 @@ function buildUiHtml(config: AppConfig): string {
       </div>
     </header>
     <section class="main">
-      <div class="ptt-panel">
+      <div class="panel">
+        <div class="panel-header">
+          <h2 class="panel-title">Push to talk</h2>
+          <div class="chip chip--ghost" id="modeChip">${mode === "toggle" ? "Toggle" : "Hold"}</div>
+        </div>
         <button class="ptt-button" id="pttButton" type="button">Hold to Talk</button>
         <div class="status-text" id="statusText">Ready</div>
         <div class="ptt-hint" id="pttHint">Press and hold, release to send.</div>

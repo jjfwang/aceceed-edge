@@ -3,7 +3,7 @@
 ## Recommended
 - Raspberry Pi 5 (8GB)
 - Raspberry Pi Camera Module 3
-- MHS-3.5inch touchscreen display
+- MHS-3.5inch touchscreen display or Whisplay/Waveshare-style LCD (auto-detected when connected to fb1)
 - KAYSHUDA USB speakerphone
 
 ## Camera
@@ -12,19 +12,19 @@
 
 ## Audio
 - List devices: `arecord -l` and `aplay -l`.
-- Update `configs/config.yaml` `audio.input.device` and `audio.output.device`.
+- Audio devices are auto-detected. If detection is wrong, set `audio.input.device` and `audio.output.device` in `configs/config.yaml`.
 - Quick test: `arecord -D plughw:CARD=KAYSHUDA,DEV=0 -d 5 /tmp/test.wav && aplay -D plughw:CARD=KAYSHUDA,DEV=0 /tmp/test.wav`.
 
-## MHS-3.5inch Touchscreen Display
-- Install the MHS driver stack per the vendor instructions (often via `LCD-show`), then reboot.
+## MHS-3.5inch Touchscreen Display / Whisplay HAT
+- Install the vendor driver stack (often via `LCD-show`), then reboot.
 - Calibrate the touchscreen if needed (e.g., `xinput_calibrator`).
-- Set `runtime.pushToTalkMode` to `api` and configure `runtime.ui.mode` (`hold` or `toggle`).
+- `runtime.pushToTalkMode: auto` will switch to `mhs-display` or `whisplay` automatically when fb1 is present; set `runtime.display.preferred` if you want to force a specific HAT.
 - Launch the UI on the display in kiosk mode: `chromium-browser --kiosk --app=http://localhost:8000/ui`.
 - The on-screen PTT button is the primary input; the UI streams transcript and response text live.
 
 ## KAYSHUDA Speakerphone
 - Plug the speakerphone in via USB, then locate its ALSA card name with `arecord -l` and `aplay -l`.
-- Set `audio.input.device` and `audio.output.device` to the KAYSHUDA card (example: `plughw:CARD=KAYSHUDA,DEV=0`).
+- Set `audio.input.device` and `audio.output.device` to the KAYSHUDA card (example: `plughw:CARD=KAYSHUDA,DEV=0`) if the automatic probe picks the wrong device.
 
 ## Dev Mode (systemd)
 - Stop the production service to avoid port conflicts: `sudo systemctl stop aceceed-edge`.
