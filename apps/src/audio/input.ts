@@ -2,6 +2,7 @@ import { promises as fs } from "node:fs";
 import type { Logger } from "pino";
 import type { AudioConfig } from "@aceceed/shared";
 import { runCommand, sleep, tempPath } from "../common/utils.js";
+import { discoverInputDevice } from "./deviceDiscovery.js";
 
 interface RecordOptions {
   signal?: AbortSignal;
@@ -31,10 +32,28 @@ function pcmToWav(pcm: Buffer, sampleRate: number, channels: number): Buffer {
 }
 
 export class AudioInput {
+  private resolvedDevice?: Promise<string>;
+
   constructor(private config: AudioConfig, private logger: Logger) {}
 
+  private async getDevice(): Promise<string> {
+    if (this.config.input.device) {
+      return this.config.input.device;
+    }
+
+    if (!this.resolvedDevice) {
+      this.resolvedDevice = discoverInputDevice(this.logger, this.config.input.arecordPath);
+    }
+
+    return this.resolvedDevice;
+  }
+
   async record({ signal, durationSec }: RecordOptions): Promise<string> {
-    if (this.config.input.backend === "node-record-lpcm16") {
+    const backend = this.config.input.backend === "auto" ? "node-record-lpcm16" : this.config.input.backend;
+    const device = await this.getDevice();
+    const nodeRecorderDisabled = process.env.ACECEED_DISABLE_NODE_RECORD === "1";
+
+    if (backend === "node-record-lpcm16" && !nodeRecorderDisabled) {
       try {
         const recordModule = await import("node-record-lpcm16");
         const recordExport = (recordModule.default ?? recordModule) as
@@ -43,13 +62,15 @@ export class AudioInput {
 
         const recordFn = typeof recordExport === "function" ? recordExport : recordExport.record;
 
-        const recording = recordFn({
+        const options: Record<string, unknown> = {
           sampleRate: this.config.input.sampleRate,
           channels: this.config.input.channels,
-          device: this.config.input.device,
+          device,
           recordProgram: "arecord",
           threshold: 0
-        });
+        };
+
+        const recording = recordFn(options);
 
         const chunks: Buffer[] = [];
         let streamError: Error | null = null;
@@ -136,7 +157,7 @@ export class AudioInput {
         await fs.writeFile(outPath, wav);
         return outPath;
       } catch (err) {
-        this.logger.warn({ err }, "node-record-lpcm16 failed, falling back to arecord");
+          this.logger.warn({ err }, "node-record-lpcm16 failed, falling back to arecord");
       }
     }
 
@@ -146,7 +167,7 @@ export class AudioInput {
         this.config.input.arecordPath,
         [
           "-D",
-          this.config.input.device,
+          device,
           "-f",
           "S16_LE",
           "-r",
@@ -172,7 +193,7 @@ export class AudioInput {
           // Ignore and surface the original error below.
         }
       }
-      throw new Error(`Audio capture failed. Check input device '${this.config.input.device}'.`);
+      throw new Error(`Audio capture failed. Check input device '${device}'.`);
     }
 
     return outPath;

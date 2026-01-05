@@ -105,21 +105,26 @@ export const configSchema = z.object({
   }),
   audio: z.object({
     input: z.object({
-      backend: z.enum(["node-record-lpcm16", "arecord"]),
-      device: z.string().min(1),
+      backend: z.enum(["node-record-lpcm16", "arecord", "auto"]),
+      device: z.string().min(1).optional(),
       sampleRate: z.number().int().positive(),
       channels: z.number().int().positive(),
       recordSeconds: z.number().int().positive(),
       arecordPath: z.string().min(1)
     }),
     output: z.object({
-      backend: z.enum(["aplay"]),
-      device: z.string().min(1),
+      backend: z.enum(["aplay", "auto"]),
+      device: z.string().min(1).optional(),
       aplayPath: z.string().min(1)
     })
   }),
   runtime: z.object({
-    pushToTalkMode: z.enum(["keyboard", "api", "mhs-display"]),
+    pushToTalkMode: z.enum(["keyboard", "api", "mhs-display", "whisplay", "auto"]),
+    display: z
+      .object({
+        preferred: z.enum(["auto", "mhs-display", "whisplay", "hdmi"]).optional()
+      })
+      .optional(),
     cameraIndicator: z.boolean(),
     micIndicator: z.boolean(),
     agents: z

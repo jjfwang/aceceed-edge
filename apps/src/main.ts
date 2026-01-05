@@ -23,6 +23,7 @@ import { startMhsDisplayPtt } from "./runtime/mhsDisplayPtt.js";
 import { createServer } from "./api/server.js";
 import { LocalRagRetriever } from "./rag/localStore.js";
 import { VisionOcr } from "./vision/ocr.js";
+import { detectDisplay } from "./display/detection.js";
 
 function setupKeyboard(bus: EventBus, logger: ReturnType<typeof createLogger>) {
   if (!process.stdin.isTTY) {
@@ -113,7 +114,15 @@ const runtime = new AppRuntime(
 
 runtime.start();
 
-if (config.runtime.pushToTalkMode === "keyboard") {
+const detectedDisplay = await detectDisplay(logger, config.runtime.display?.preferred ?? "auto");
+const pushToTalkMode =
+  config.runtime.pushToTalkMode === "auto"
+    ? detectedDisplay === "mhs-display" || detectedDisplay === "whisplay"
+      ? detectedDisplay
+      : "api"
+    : config.runtime.pushToTalkMode;
+
+if (pushToTalkMode === "keyboard") {
   setupKeyboard(bus, logger);
 }
 
@@ -129,9 +138,9 @@ try {
 
   let stopPtt: (() => void) | undefined;
 
-  if (config.runtime.pushToTalkMode === "mhs-display") {
+  if (pushToTalkMode === "mhs-display" || pushToTalkMode === "whisplay") {
 
-    stopPtt = await startMhsDisplayPtt(bus, config, logger);
+    stopPtt = await startMhsDisplayPtt(bus, config, logger, pushToTalkMode);
 
   }
 

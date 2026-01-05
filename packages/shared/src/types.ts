@@ -106,22 +106,25 @@ export interface VisionConfig {
 
 export interface AudioConfig {
   input: {
-    backend: "node-record-lpcm16" | "arecord";
-    device: string;
+    backend: "node-record-lpcm16" | "arecord" | "auto";
+    device?: string;
     sampleRate: number;
     channels: number;
     recordSeconds: number;
     arecordPath: string;
   };
   output: {
-    backend: "aplay";
-    device: string;
+    backend: "aplay" | "auto";
+    device?: string;
     aplayPath: string;
   };
 }
 
 export interface RuntimeConfig {
-  pushToTalkMode: "keyboard" | "api" | "mhs-display";
+  pushToTalkMode: "keyboard" | "api" | "mhs-display" | "whisplay" | "auto";
+  display?: {
+    preferred?: "auto" | "mhs-display" | "whisplay" | "hdmi";
+  };
   cameraIndicator: boolean;
   micIndicator: boolean;
   agents?: {

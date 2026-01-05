@@ -5,10 +5,13 @@ import { createLogger } from "../common/logging.js";
 import { EventBus } from "./eventBus.js";
 import { findPyScript } from "../common/utils.js";
 
+type DisplaySource = "mhs-display" | "whisplay";
+
 export async function startMhsDisplayPtt(
   bus: EventBus,
   config: AppConfig,
-  logger: ReturnType<typeof createLogger>
+  logger: ReturnType<typeof createLogger>,
+  source: DisplaySource = "mhs-display"
 ): Promise<() => void> {
   const script = await findPyScript(
     path.resolve(process.cwd(), "scripts/mhs_display.py"),
@@ -25,9 +28,9 @@ export async function startMhsDisplayPtt(
   child.stdout.on("data", (data: Buffer) => {
     const message = data.toString().trim();
     if (message === "PTT_START") {
-      bus.publish({ type: "ptt:start", source: "mhs-display" });
+      bus.publish({ type: "ptt:start", source });
     } else if (message === "PTT_STOP") {
-      bus.publish({ type: "ptt:stop", source: "mhs-display" });
+      bus.publish({ type: "ptt:stop", source });
     }
   });
 
@@ -39,6 +42,6 @@ export async function startMhsDisplayPtt(
     child.kill("SIGINT");
   };
 
-  logger.info("MHS display PTT enabled.");
+  logger.info({ source }, "Display PTT enabled.");
   return stop;
 }
